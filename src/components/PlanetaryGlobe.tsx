@@ -274,7 +274,7 @@ export default function PlanetaryGlobe({ activeLayer, yearOffset = 1 }: { active
         <directionalLight position={[5, 3, 5]}   intensity={1.2} color="#b0e8ff" />
         <directionalLight position={[-5, -3, -2]} intensity={0.3} color="#001a2e" />
         <Stars radius={120} depth={60} count={3000} factor={3} saturation={0.1} fade />
-        <EarthGlobe activeLayer={activeLayer} />
+        <EarthGlobe activeLayer={activeLayer} yearOffset={yearOffset} />
         <OrbitalRings />
       </Canvas>
 
