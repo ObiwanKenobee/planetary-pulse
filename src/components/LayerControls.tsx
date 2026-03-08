@@ -10,13 +10,14 @@ export interface Layer {
 }
 
 export const LAYERS: Layer[] = [
-  { id: "none",   label: "DEFAULT",    icon: "🌍", color: "hsl(185 100% 50%)", description: "Base visualization" },
-  { id: "forest", label: "FOREST",     icon: "🌿", color: "hsl(142 70% 45%)", description: "Vegetation vitality" },
-  { id: "ocean",  label: "OCEAN HEAT", icon: "🌊", color: "hsl(210 100% 55%)", description: "Sea surface temps" },
-  { id: "ice",    label: "ICE MASS",   icon: "🧊", color: "hsl(200 80% 80%)", description: "Cryosphere extent" },
-  { id: "co2",    label: "CARBON",     icon: "💨", color: "hsl(38 95% 55%)",  description: "Atmospheric CO₂" },
-  { id: "heat",   label: "HEAT ISLANDS",icon: "🔥", color: "hsl(0 85% 60%)",  description: "Urban heat zones" },
-  { id: "soil",   label: "SOIL",       icon: "🌱", color: "hsl(30 60% 45%)",  description: "Moisture index" },
+  { id: "none",   label: "DEFAULT",       icon: "🌍", color: "hsl(185 100% 50%)", description: "Base visualization"    },
+  { id: "forest", label: "FOREST",        icon: "🌿", color: "hsl(142 70% 45%)",  description: "Vegetation vitality"  },
+  { id: "ocean",  label: "OCEAN HEAT",    icon: "🌊", color: "hsl(210 100% 55%)", description: "Sea surface temps"    },
+  { id: "ice",    label: "ICE MASS",      icon: "🧊", color: "hsl(200 80% 80%)",  description: "Cryosphere extent"    },
+  { id: "co2",    label: "CARBON",        icon: "💨", color: "hsl(38 95% 55%)",   description: "Atmospheric CO₂"     },
+  { id: "heat",   label: "HEAT ISLANDS",  icon: "🔥", color: "hsl(0 85% 60%)",    description: "Urban heat zones"     },
+  { id: "soil",   label: "SOIL",          icon: "🌱", color: "hsl(30 60% 45%)",   description: "Moisture index"       },
+  { id: "impact", label: "HUMAN IMPACT",  icon: "🏭", color: "hsl(290 80% 65%)",  description: "Cities · Mines · Restoration" },
 ];
 
 interface LayerControlsProps {
@@ -40,7 +41,7 @@ export default function LayerControls({ activeLayer, onLayerChange }: LayerContr
               key={layer.id}
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.06 }}
+              transition={{ delay: i * 0.05 }}
               onClick={() => onLayerChange(layer.id)}
               className={`relative flex items-center gap-3 rounded-sm px-3 py-2 text-left transition-all duration-200 border ${
                 isActive
@@ -48,7 +49,6 @@ export default function LayerControls({ activeLayer, onLayerChange }: LayerContr
                   : "border-transparent hover:border-border hover:bg-muted/50"
               }`}
             >
-              {/* Active indicator */}
               {isActive && (
                 <motion.div
                   layoutId="activeLayer"
@@ -56,19 +56,13 @@ export default function LayerControls({ activeLayer, onLayerChange }: LayerContr
                   style={{ backgroundColor: layer.color }}
                 />
               )}
-
               <span className="text-base leading-none">{layer.icon}</span>
               <div className="flex-1 min-w-0">
-                <div className={`font-data text-[10px] tracking-widest font-medium ${
-                  isActive ? "text-foreground" : "text-muted-foreground"
-                }`}>
+                <div className={`font-data text-[10px] tracking-widest font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                   {layer.label}
                 </div>
-                <div className="font-data text-[9px] text-muted-foreground/60 mt-0.5">
-                  {layer.description}
-                </div>
+                <div className="font-data text-[9px] text-muted-foreground/60 mt-0.5">{layer.description}</div>
               </div>
-
               {isActive && (
                 <div className="flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ backgroundColor: layer.color }} />
@@ -80,12 +74,11 @@ export default function LayerControls({ activeLayer, onLayerChange }: LayerContr
         })}
       </div>
 
-      {/* Source note */}
       <div className="mt-auto pt-3 border-t border-border/30">
         <div className="font-data text-[8px] text-muted-foreground/40 tracking-wider leading-relaxed">
           DATA SOURCES<br />
-          NASA · ESA Sentinel · MODIS · Landsat<br />
-          NOAA · Copernicus · Planet Labs
+          NASA · ESA Sentinel · MODIS<br />
+          Landsat · NOAA · Planet Labs
         </div>
       </div>
     </div>
