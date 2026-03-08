@@ -116,7 +116,7 @@ export default function Index() {
                 transition={{ duration: 0.5, delay: 0.35 }}
                 className="panel-glass rounded-sm p-3 shadow-panel"
               >
-                <TimeSlider />
+                <TimeSlider activeLayer={activeLayer} />
               </motion.div>
             </div>
           </div>
