@@ -58,14 +58,26 @@ function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffs
   const isRegen  = activeLayer === "regen";
   const layerVec = layerColors[activeLayer] ?? layerColors["none"];
 
+  // Update layer uniforms when activeLayer or yearOffset changes (without full shader rebuild)
+  const matRef = useRef<THREE.ShaderMaterial | null>(null);
+  useEffect(() => {
+    if (!matRef.current) return;
+    matRef.current.uniforms.layerColor.value     = layerVec;
+    matRef.current.uniforms.layerIntensity.value = activeLayer !== "none" ? 0.38 : 0.0;
+    matRef.current.uniforms.isImpact.value       = isImpact ? 1.0 : 0.0;
+    matRef.current.uniforms.isRegen.value        = isRegen  ? 1.0 : 0.0;
+    matRef.current.uniforms.yearOffset.value     = yearOffset;
+  }, [activeLayer, yearOffset, layerVec, isImpact, isRegen]);
+
   const globeMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
+    const mat = new THREE.ShaderMaterial({
       uniforms: {
         time:           { value: 0 },
         layerColor:     { value: layerVec },
         layerIntensity: { value: activeLayer !== "none" ? 0.38 : 0.0 },
         isImpact:       { value: isImpact ? 1.0 : 0.0 },
         isRegen:        { value: isRegen  ? 1.0 : 0.0 },
+        yearOffset:     { value: yearOffset },
       },
       vertexShader: `
         varying vec2 vUv;
