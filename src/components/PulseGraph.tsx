@@ -47,13 +47,13 @@ export default function PulseGraph({ stability = 0.72, alertLevel = "warning" }:
     intervalRef.current = setInterval(() => {
       setWaveforms(prev => {
         const next = [...prev];
-        next[currentIndex % HISTORY_LINES] = generateWaveform(POINTS, 0.72);
+        next[currentIndex % HISTORY_LINES] = generateWaveform(POINTS, stability);
         return next;
       });
       setCurrentIndex(i => i + 1);
     }, 2400);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [currentIndex]);
+  }, [currentIndex, stability]);
 
   const svgWidth = 600;
   const svgHeight = 80;
