@@ -18,9 +18,9 @@ const ecosystems: EcoSystem[] = [
   { id: "coral",        label: "CORAL REEFS",   angle: 51,  value: 0.45, baseline: 1.0, color: "#f97316", unit: "45%",  status: "critical" },
   { id: "ocean",        label: "PHYTOPLANKTON", angle: 103, value: 0.71, baseline: 1.0, color: "#0ea5e9", unit: "71%",  status: "warning"  },
   { id: "wetlands",     label: "WETLANDS",      angle: 154, value: 0.58, baseline: 1.0, color: "#06b6d4", unit: "58%",  status: "warning"  },
-  { id: "grasslands",   label: "GRASSLANDS",    angle: 206, value: 0.79, baseline: 1.0, color: "#84cc16", unit: "79%",  status: "nominal"  },
+  { id: "grasslands",   label: "GRASSLANDS",    angle: 206, value: 0.79, baseline: 1.0, color: "#84cc16", unit: "79%",  status: "healthy"  },
   { id: "arctic",       label: "ARCTIC TUNDRA", angle: 257, value: 0.38, baseline: 1.0, color: "#67e8f9", unit: "38%",  status: "critical" },
-  { id: "drylands",     label: "DRYLANDS",      angle: 309, value: 0.83, baseline: 1.0, color: "#fbbf24", unit: "83%",  status: "nominal"  },
+  { id: "drylands",     label: "DRYLANDS",      angle: 309, value: 0.83, baseline: 1.0, color: "#fbbf24", unit: "83%",  status: "healthy"  },
 ];
 
 function polarToXY(cx: number, cy: number, r: number, angleDeg: number) {
