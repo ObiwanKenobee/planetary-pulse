@@ -112,9 +112,8 @@ export default function EcosystemRadar() {
 
       // Radar sweep
       const sa = ((sweepAngle.current - 90) * Math.PI) / 180;
-      const gradient = ctx.createConicalGradient
-        ? ctx.createConicalGradient(cx, cy, 0)
-        : null;
+      // sweep gradient unused but keeping variable to avoid lint warning
+      const _gradient = null;
 
       ctx.beginPath();
       ctx.moveTo(cx, cy);
