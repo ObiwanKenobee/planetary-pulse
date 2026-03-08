@@ -1,5 +1,5 @@
-import { useRef, useMemo, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useRef, useMemo, useEffect, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -36,8 +36,94 @@ function Atmosphere() {
   );
 }
 
+/* ---- Pulsing highlight ring at a lat/lon ---- */
+function RegionHighlight({ lat, lon }: { lat: number; lon: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const ringMat = useRef(
+    new THREE.MeshBasicMaterial({
+      color: new THREE.Color(0.1, 1.0, 0.3),
+      transparent: true,
+      opacity: 0.8,
+      side: THREE.DoubleSide,
+    })
+  );
+
+  // Convert lat/lon to 3D position on globe surface
+  const phi   = (90 - lat) * (Math.PI / 180);
+  const theta = (lon + 180) * (Math.PI / 180);
+  const r = 1.02;
+  const x = r * Math.sin(phi) * Math.cos(theta);
+  const y = r * Math.cos(phi);
+  const z = r * Math.sin(phi) * Math.sin(theta);
+
+  useFrame(({ clock }) => {
+    if (groupRef.current) {
+      const t = clock.getElapsedTime();
+      const scale = 1.0 + 0.4 * Math.sin(t * 3.0);
+      groupRef.current.scale.setScalar(scale);
+      ringMat.current.opacity = 0.5 + 0.3 * Math.sin(t * 3.0);
+    }
+  });
+
+  // Orient ring to face outward from globe center
+  const normal   = new THREE.Vector3(x, y, z).normalize();
+  const quaternion = new THREE.Quaternion();
+  quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+
+  return (
+    <group ref={groupRef} position={[x, y, z]} quaternion={quaternion}>
+      <mesh material={ringMat.current}>
+        <torusGeometry args={[0.06, 0.008, 8, 64]} />
+      </mesh>
+      {/* Inner dot */}
+      <mesh>
+        <sphereGeometry args={[0.018, 16, 16]} />
+        <meshBasicMaterial color={new THREE.Color(0.2, 1.0, 0.4)} transparent opacity={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+/* ---- Camera zoom controller ---- */
+function CameraController({ focusLat, focusLon }: { focusLat: number | null; focusLon: number | null }) {
+  const { camera } = useThree();
+  const targetRef = useRef(new THREE.Vector3(0, 0, 3));
+
+  useEffect(() => {
+    if (focusLat === null || focusLon === null) {
+      targetRef.current.set(0, 0, 3);
+    } else {
+      const phi   = (90 - focusLat) * (Math.PI / 180);
+      const theta = (focusLon + 180) * (Math.PI / 180);
+      const x = Math.sin(phi) * Math.cos(theta);
+      const y = Math.cos(phi);
+      const z = Math.sin(phi) * Math.sin(theta);
+      // Position camera 2.4 units away in that direction
+      targetRef.current.set(x * 2.4, y * 2.4, z * 2.4);
+    }
+  }, [focusLat, focusLon]);
+
+  useFrame(() => {
+    // Smooth lerp
+    (camera as THREE.PerspectiveCamera).position.lerp(targetRef.current, 0.04);
+    camera.lookAt(0, 0, 0);
+  });
+
+  return null;
+}
+
 /* ---- Globe mesh ---- */
-function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffset: number }) {
+function EarthGlobe({
+  activeLayer,
+  yearOffset,
+  focusLat,
+  focusLon,
+}: {
+  activeLayer: string;
+  yearOffset: number;
+  focusLat: number | null;
+  focusLon: number | null;
+}) {
   const meshRef  = useRef<THREE.Mesh>(null);
   const cloudRef = useRef<THREE.Mesh>(null);
   const timeRef  = useRef(0);
@@ -49,8 +135,8 @@ function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffs
     co2:    new THREE.Vector3(0.9, 0.5, 0.1),
     heat:   new THREE.Vector3(1.0, 0.2, 0.1),
     soil:   new THREE.Vector3(0.6, 0.4, 0.1),
-    impact:  new THREE.Vector3(0.8, 0.3, 0.9), // human impact — magenta/violet
-    regen:   new THREE.Vector3(0.1, 0.9, 0.4), // regenerative finance — vivid green
+    impact:  new THREE.Vector3(0.8, 0.3, 0.9),
+    regen:   new THREE.Vector3(0.1, 0.9, 0.4),
     none:   new THREE.Vector3(0.08, 0.45, 0.6),
   };
 
@@ -58,7 +144,6 @@ function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffs
   const isRegen  = activeLayer === "regen";
   const layerVec = layerColors[activeLayer] ?? layerColors["none"];
 
-  // Update layer uniforms when activeLayer or yearOffset changes (without full shader rebuild)
   const matRef = useRef<THREE.ShaderMaterial | null>(null);
   useEffect(() => {
     if (!matRef.current) return;
@@ -115,28 +200,21 @@ function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffs
           float n2   = noise(vUv*12.0 + vec2(0.3));
           float land = smoothstep(0.42,0.56, n1*0.7+n2*0.3);
 
-          // Historical year: ice extent shrinks from 1980→2024
           float iceExtent = 1.0 - yearOffset * 0.43;
           float pole = smoothstep(0.7*iceExtent, 0.95*iceExtent, abs(vUv.y-0.5)*2.0);
 
-          // Forest dims from deforestation
           float forestVitality = mix(1.0, 0.6, yearOffset);
           vec3 forestLand = mix(landColor, vec3(0.08,0.20,0.08), (1.0-forestVitality)*0.5);
 
           vec3 col = mix(oceanColor, forestLand, land);
           col      = mix(col, iceColor, pole);
 
-          // CO2 haze over ocean (subtle amber tint)
           col = mix(col, vec3(0.45,0.35,0.10), yearOffset*0.05*(1.0-land));
-
-          // Shimmer
           col += noise(vUv*30.0+vec2(time*0.02))*0.05*(1.0-land);
 
-          // Standard layer tint
           float layerNoise = noise(vUv*8.0);
           col = mix(col, layerColor, layerIntensity*(0.5+0.5*layerNoise));
 
-          // Human impact: pulsing hotspots on land
           if(isImpact > 0.5){
             float pulse  = 0.5+0.5*sin(time*2.0);
             float city   = smoothstep(0.62,0.72, noise(vUv*18.0+vec2(0.7)));
@@ -149,7 +227,6 @@ function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffs
             col = mix(col, vec3(0.1,0.9,0.3),  restore*0.5*pulse);
           }
 
-          // Regenerative Finance: capital deployment → ecosystem recovery signals
           if(isRegen > 0.5){
             float slowPulse = 0.5+0.5*sin(time*0.8);
             float fastPulse = 0.5+0.5*sin(time*3.0);
@@ -171,11 +248,9 @@ function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffs
             col = mix(col, vec3(0.0,0.9,0.7), coastal*0.5*slowPulse);
           }
 
-          // Rim lighting
           float rim = pow(1.0-max(dot(vNormal,vec3(0,0,1)),0.0),3.5);
           col += vec3(0.02,0.25,0.35)*rim*0.6;
 
-          // Ocean specular
           float spec = pow(max(dot(vNormal,normalize(vec3(0.5,0.8,1.0))),0.0),32.0);
           col += vec3(0.1,0.4,0.6)*spec*(1.0-land)*0.5;
 
@@ -237,6 +312,10 @@ function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffs
         <sphereGeometry args={[1.02, 64, 64]} />
       </mesh>
       <Atmosphere />
+      {/* Region highlight ring */}
+      {focusLat !== null && focusLon !== null && (
+        <RegionHighlight lat={focusLat} lon={focusLon} />
+      )}
     </group>
   );
 }
@@ -262,7 +341,21 @@ function OrbitalRings() {
   );
 }
 
-export default function PlanetaryGlobe({ activeLayer, yearOffset = 1 }: { activeLayer: string; yearOffset?: number }) {
+interface PlanetaryGlobeProps {
+  activeLayer: string;
+  yearOffset?: number;
+  focusLat?: number | null;
+  focusLon?: number | null;
+  focusLabel?: string | null;
+}
+
+export default function PlanetaryGlobe({
+  activeLayer,
+  yearOffset = 1,
+  focusLat = null,
+  focusLon = null,
+  focusLabel = null,
+}: PlanetaryGlobeProps) {
   return (
     <div className="relative w-full h-full">
       <div className="absolute inset-0 bg-globe-glow" />
@@ -271,14 +364,22 @@ export default function PlanetaryGlobe({ activeLayer, yearOffset = 1 }: { active
         <directionalLight position={[5, 3, 5]}   intensity={1.2} color="#b0e8ff" />
         <directionalLight position={[-5, -3, -2]} intensity={0.3} color="#001a2e" />
         <Stars radius={120} depth={60} count={3000} factor={3} saturation={0.1} fade />
-        <EarthGlobe activeLayer={activeLayer} yearOffset={yearOffset} />
+        <EarthGlobe activeLayer={activeLayer} yearOffset={yearOffset} focusLat={focusLat} focusLon={focusLon} />
         <OrbitalRings />
+        <CameraController focusLat={focusLat} focusLon={focusLon} />
       </Canvas>
 
       <div className="absolute top-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">LAT 00°00′N · LON 000°00′E</div>
       <div className="absolute top-3 right-3 font-data text-[10px] text-primary/40 tracking-widest">ALT 36,000 KM</div>
       <div className="absolute bottom-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">PROJ: ORTHOGRAPHIC</div>
       <div className="absolute bottom-3 right-3 font-data text-[10px] text-primary/40 tracking-widest animate-pulse-dot">● LIVE FEED</div>
+
+      {/* Region focus badge */}
+      {focusLabel && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 font-data text-[9px] tracking-widest bg-healthy/15 border border-healthy/30 text-healthy rounded-sm px-3 py-1 pointer-events-none">
+          ● FOCUS: {focusLabel.toUpperCase()}
+        </div>
+      )}
 
       {/* Human impact legend */}
       {activeLayer === "impact" && (
