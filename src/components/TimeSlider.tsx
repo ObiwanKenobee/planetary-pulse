@@ -345,14 +345,14 @@ export default function TimeSlider({ activeLayer = "none", onYearChange }: TimeS
               <Slider
                 min={START_YEAR} max={END_YEAR} step={1}
                 value={[year]}
-                onValueChange={([v]) => setYear(v)}
+                onValueChange={([v]) => handleYearChange(v)}
                 className="w-full"
               />
               <div className="flex justify-between mt-1.5">
                 {[1980, 1990, 2000, 2010, 2020, 2024].map(y => (
                   <button
                     key={y}
-                    onClick={() => setYear(y)}
+                    onClick={() => handleYearChange(y)}
                     className={`font-data text-[8px] transition-colors ${year === y ? "text-primary" : "text-muted-foreground/50 hover:text-muted-foreground"}`}
                   >
                     {y}
