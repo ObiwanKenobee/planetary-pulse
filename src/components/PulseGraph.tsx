@@ -174,9 +174,9 @@ export default function PulseGraph({ stability = 0.72, alertLevel = "warning" }:
         </div>
 
         {/* Status tag */}
-        <div className="absolute top-2 left-2 flex items-center gap-1 bg-background/60 rounded px-1.5 py-0.5 border border-warning/20">
-          <span className="w-1 h-1 rounded-full bg-warning animate-pulse-dot" />
-          <span className="font-data text-[9px] text-warning tracking-widest">STRESSED</span>
+        <div className={`absolute top-2 left-2 flex items-center gap-1 bg-background/60 rounded px-1.5 py-0.5 border ${alertLevel === "critical" ? "border-critical/30" : alertLevel === "warning" ? "border-warning/20" : "border-nominal/20"}`}>
+          <span className={`w-1 h-1 rounded-full animate-pulse-dot ${alertLevel === "critical" ? "bg-critical" : alertLevel === "warning" ? "bg-warning" : "bg-nominal"}`} />
+          <span className={`font-data text-[9px] tracking-widest ${statusColor}`}>{statusLabel}</span>
         </div>
       </div>
 
