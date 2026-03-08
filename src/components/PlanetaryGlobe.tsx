@@ -1,12 +1,10 @@
 import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Sphere, Stars } from "@react-three/drei";
+import { Stars } from "@react-three/drei";
 import * as THREE from "three";
 
 /* ---- Atmosphere halo ---- */
 function Atmosphere() {
-  const meshRef = useRef<THREE.Mesh>(null);
-
   const material = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -31,113 +29,113 @@ function Atmosphere() {
     []
   );
 
-  return <Sphere ref={meshRef} args={[1.18, 64, 64]} material={material} />;
+  return (
+    <mesh material={material}>
+      <sphereGeometry args={[1.18, 64, 64]} />
+    </mesh>
+  );
 }
 
 /* ---- Globe mesh ---- */
 function EarthGlobe({ activeLayer }: { activeLayer: string }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef  = useRef<THREE.Mesh>(null);
   const cloudRef = useRef<THREE.Mesh>(null);
+  const timeRef  = useRef(0);
 
-  // Layer colors mapped to overlay tint
-  const layerColors: Record<string, THREE.Color> = {
-    "forest": new THREE.Color(0.1, 0.7, 0.2),
-    "ocean":  new THREE.Color(0.0, 0.5, 1.0),
-    "ice":    new THREE.Color(0.7, 0.9, 1.0),
-    "co2":    new THREE.Color(0.9, 0.5, 0.1),
-    "heat":   new THREE.Color(1.0, 0.2, 0.1),
-    "soil":   new THREE.Color(0.6, 0.4, 0.1),
-    "none":   new THREE.Color(0.08, 0.45, 0.6),
+  const layerColors: Record<string, THREE.Vector3> = {
+    forest: new THREE.Vector3(0.1, 0.7, 0.2),
+    ocean:  new THREE.Vector3(0.0, 0.5, 1.0),
+    ice:    new THREE.Vector3(0.7, 0.9, 1.0),
+    co2:    new THREE.Vector3(0.9, 0.5, 0.1),
+    heat:   new THREE.Vector3(1.0, 0.2, 0.1),
+    soil:   new THREE.Vector3(0.6, 0.4, 0.1),
+    impact: new THREE.Vector3(0.8, 0.3, 0.9), // human impact — magenta/violet
+    none:   new THREE.Vector3(0.08, 0.45, 0.6),
   };
+
+  const isImpact = activeLayer === "impact";
+  const layerVec = layerColors[activeLayer] ?? layerColors["none"];
 
   const globeMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
-        time:        { value: 0 },
-        layerColor:  { value: layerColors[activeLayer] || layerColors["none"] },
-        layerIntensity: { value: activeLayer !== "none" ? 0.35 : 0.0 },
+        time:           { value: 0 },
+        layerColor:     { value: layerVec },
+        layerIntensity: { value: activeLayer !== "none" ? 0.38 : 0.0 },
+        isImpact:       { value: isImpact ? 1.0 : 0.0 },
       },
       vertexShader: `
         varying vec2 vUv;
         varying vec3 vNormal;
-        varying vec3 vPosition;
         void main() {
           vUv = uv;
           vNormal = normalize(normalMatrix * normal);
-          vPosition = position;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: `
         uniform float time;
-        uniform vec3 layerColor;
+        uniform vec3  layerColor;
         uniform float layerIntensity;
+        uniform float isImpact;
         varying vec2 vUv;
         varying vec3 vNormal;
-        varying vec3 vPosition;
 
-        float hash(vec2 p) {
-          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+        float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }
+        float noise(vec2 p){
+          vec2 i=floor(p); vec2 f=fract(p);
+          f=f*f*(3.0-2.0*f);
+          return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),
+                     mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
         }
 
-        float noise(vec2 p) {
-          vec2 i = floor(p);
-          vec2 f = fract(p);
-          f = f * f * (3.0 - 2.0 * f);
-          return mix(mix(hash(i), hash(i + vec2(1,0)), f.x),
-                     mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), f.x), f.y);
-        }
+        void main(){
+          vec3 oceanColor = vec3(0.02,0.18,0.35);
+          vec3 landColor  = vec3(0.12,0.32,0.18);
+          vec3 iceColor   = vec3(0.80,0.92,0.98);
 
-        void main() {
-          // Base ocean deep blue
-          vec3 oceanColor = vec3(0.02, 0.18, 0.35);
-          // Land continents
-          vec3 landColor  = vec3(0.12, 0.32, 0.18);
-          // Poles
-          vec3 iceColor   = vec3(0.80, 0.92, 0.98);
-
-          // Simple procedural continent mask
-          float n1 = noise(vUv * 5.0 + vec2(time * 0.005));
-          float n2 = noise(vUv * 12.0 + vec2(0.3));
-          float land = smoothstep(0.42, 0.56, n1 * 0.7 + n2 * 0.3);
-
-          // Pole fade
-          float pole = smoothstep(0.7, 0.95, abs(vUv.y - 0.5) * 2.0);
+          float n1   = noise(vUv*5.0  + vec2(time*0.004));
+          float n2   = noise(vUv*12.0 + vec2(0.3));
+          float land = smoothstep(0.42,0.56, n1*0.7+n2*0.3);
+          float pole = smoothstep(0.7,0.95, abs(vUv.y-0.5)*2.0);
 
           vec3 col = mix(oceanColor, landColor, land);
-          col = mix(col, iceColor, pole);
+          col      = mix(col, iceColor, pole);
 
-          // Ocean shimmer
-          float shimmer = noise(vUv * 30.0 + vec2(time * 0.02)) * 0.05 * (1.0 - land);
-          col += shimmer;
+          // Shimmer
+          col += noise(vUv*30.0+vec2(time*0.02))*0.05*(1.0-land);
 
-          // Layer overlay tint
-          col = mix(col, layerColor, layerIntensity * (0.5 + 0.5 * noise(vUv * 8.0)));
+          // Standard layer tint
+          float layerNoise = noise(vUv*8.0);
+          col = mix(col, layerColor, layerIntensity*(0.5+0.5*layerNoise));
+
+          // Human impact: pulsing hotspots on land
+          if(isImpact > 0.5){
+            float pulse  = 0.5+0.5*sin(time*2.0);
+            float city   = smoothstep(0.62,0.72, noise(vUv*18.0+vec2(0.7)));
+            float defor  = smoothstep(0.55,0.65, noise(vUv*9.0 +vec2(1.3)))*land;
+            float mining = smoothstep(0.70,0.78, noise(vUv*22.0+vec2(2.1)))*land;
+            float restore= smoothstep(0.75,0.82, noise(vUv*14.0+vec2(3.5)))*land;
+            col = mix(col, vec3(1.0,0.4,0.05), city*0.5*pulse);     // orange cities
+            col = mix(col, vec3(0.7,0.2,0.0),  defor*0.55);          // dark red deforestation
+            col = mix(col, vec3(0.5,0.4,0.1),  mining*0.45);         // brown mining
+            col = mix(col, vec3(0.1,0.9,0.3),  restore*0.5*pulse);   // green restoration
+          }
 
           // Rim lighting
-          float rim = pow(1.0 - max(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0), 3.5);
-          col += vec3(0.02, 0.25, 0.35) * rim * 0.6;
+          float rim = pow(1.0-max(dot(vNormal,vec3(0,0,1)),0.0),3.5);
+          col += vec3(0.02,0.25,0.35)*rim*0.6;
 
-          // Specular on ocean
-          float spec = pow(max(dot(vNormal, normalize(vec3(0.5, 0.8, 1.0))), 0.0), 32.0);
-          col += vec3(0.1, 0.4, 0.6) * spec * (1.0 - land) * 0.5;
+          // Ocean specular
+          float spec = pow(max(dot(vNormal,normalize(vec3(0.5,0.8,1.0))),0.0),32.0);
+          col += vec3(0.1,0.4,0.6)*spec*(1.0-land)*0.5;
 
-          gl_FragColor = vec4(col, 1.0);
+          gl_FragColor = vec4(col,1.0);
         }
       `,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLayer]);
-
-  useFrame(({ clock }) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = clock.getElapsedTime() * 0.06;
-      (globeMaterial.uniforms.time as THREE.IUniform).value = clock.getElapsedTime();
-    }
-    if (cloudRef.current) {
-      cloudRef.current.rotation.y = clock.getElapsedTime() * 0.04;
-    }
-  });
 
   const cloudMaterial = useMemo(
     () =>
@@ -145,24 +143,20 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
         uniforms: { time: { value: 0 } },
         vertexShader: `
           varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
+          void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }
         `,
         fragmentShader: `
-          uniform float time;
-          varying vec2 vUv;
+          uniform float time; varying vec2 vUv;
           float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
           float noise(vec2 p){
-            vec2 i=floor(p); vec2 f=fract(p); f=f*f*(3.0-2.0*f);
+            vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);
             return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
           }
           void main(){
-            float n = noise(vUv*6.0 + vec2(time*0.01,0));
-            float n2 = noise(vUv*14.0 + vec2(time*0.008));
-            float clouds = smoothstep(0.52,0.72, n*0.6+n2*0.4);
-            gl_FragColor = vec4(0.9,0.95,1.0, clouds * 0.55);
+            float n=noise(vUv*6.0+vec2(time*0.01,0));
+            float n2=noise(vUv*14.0+vec2(time*0.008));
+            float clouds=smoothstep(0.52,0.72,n*0.6+n2*0.4);
+            gl_FragColor=vec4(0.9,0.95,1.0,clouds*0.45);
           }
         `,
         transparent: true,
@@ -172,30 +166,41 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
   );
 
   useFrame(({ clock }) => {
-    (cloudMaterial.uniforms.time as THREE.IUniform).value = clock.getElapsedTime();
+    timeRef.current = clock.getElapsedTime();
+    if (meshRef.current) {
+      meshRef.current.rotation.y = timeRef.current * 0.06;
+      (globeMaterial.uniforms.time as THREE.IUniform).value = timeRef.current;
+    }
+    if (cloudRef.current) {
+      cloudRef.current.rotation.y = timeRef.current * 0.04;
+      (cloudMaterial.uniforms.time as THREE.IUniform).value = timeRef.current;
+    }
   });
 
   return (
     <group>
-      <Sphere ref={meshRef} args={[1, 96, 96]} material={globeMaterial} />
-      <Sphere ref={cloudRef} args={[1.02, 64, 64]} material={cloudMaterial} />
+      <mesh ref={meshRef} material={globeMaterial}>
+        <sphereGeometry args={[1, 96, 96]} />
+      </mesh>
+      <mesh ref={cloudRef} material={cloudMaterial}>
+        <sphereGeometry args={[1.02, 64, 64]} />
+      </mesh>
       <Atmosphere />
     </group>
   );
 }
 
-/* ---- Grid rings (orbital decorations) ---- */
+/* ---- Orbital rings ---- */
 function OrbitalRings() {
-  const ringRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<THREE.Group>(null);
   useFrame(({ clock }) => {
-    if (ringRef.current) {
-      ringRef.current.rotation.z = clock.getElapsedTime() * 0.03;
-      ringRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.02) * 0.1;
+    if (groupRef.current) {
+      groupRef.current.rotation.z = clock.getElapsedTime() * 0.03;
+      groupRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.02) * 0.1;
     }
   });
-
   return (
-    <group ref={ringRef}>
+    <group ref={groupRef}>
       {[1.55, 1.75, 1.95].map((r, i) => (
         <mesh key={i} rotation={[Math.PI / 2 + i * 0.3, 0, 0]}>
           <torusGeometry args={[r, 0.002, 4, 128]} />
@@ -206,44 +211,40 @@ function OrbitalRings() {
   );
 }
 
-/* ---- Main export ---- */
-interface PlanetaryGlobeProps {
-  activeLayer: string;
-}
-
-export default function PlanetaryGlobe({ activeLayer }: PlanetaryGlobeProps) {
+export default function PlanetaryGlobe({ activeLayer }: { activeLayer: string }) {
   return (
     <div className="relative w-full h-full">
-      {/* Background glow */}
       <div className="absolute inset-0 bg-globe-glow" />
-
-      <Canvas
-        camera={{ position: [0, 0, 3], fov: 45 }}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
-      >
+      <Canvas camera={{ position: [0, 0, 3], fov: 45 }} gl={{ antialias: true, alpha: true }} style={{ background: "transparent" }}>
         <ambientLight intensity={0.15} />
-        <directionalLight position={[5, 3, 5]} intensity={1.2} color="#b0e8ff" />
+        <directionalLight position={[5, 3, 5]}   intensity={1.2} color="#b0e8ff" />
         <directionalLight position={[-5, -3, -2]} intensity={0.3} color="#001a2e" />
-
         <Stars radius={120} depth={60} count={3000} factor={3} saturation={0.1} fade />
         <EarthGlobe activeLayer={activeLayer} />
         <OrbitalRings />
       </Canvas>
 
-      {/* Corner decorations */}
-      <div className="absolute top-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">
-        LAT 00°00′N · LON 000°00′E
-      </div>
-      <div className="absolute top-3 right-3 font-data text-[10px] text-primary/40 tracking-widest">
-        ALT 36,000 KM
-      </div>
-      <div className="absolute bottom-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">
-        PROJ: ORTHOGRAPHIC
-      </div>
-      <div className="absolute bottom-3 right-3 font-data text-[10px] text-primary/40 tracking-widest animate-pulse-dot">
-        ● LIVE FEED
-      </div>
+      <div className="absolute top-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">LAT 00°00′N · LON 000°00′E</div>
+      <div className="absolute top-3 right-3 font-data text-[10px] text-primary/40 tracking-widest">ALT 36,000 KM</div>
+      <div className="absolute bottom-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">PROJ: ORTHOGRAPHIC</div>
+      <div className="absolute bottom-3 right-3 font-data text-[10px] text-primary/40 tracking-widest animate-pulse-dot">● LIVE FEED</div>
+
+      {/* Human impact legend */}
+      {activeLayer === "impact" && (
+        <div className="absolute bottom-8 left-3 flex flex-col gap-1 bg-background/70 rounded px-2 py-2 border border-border/30">
+          {[
+            { color: "bg-orange-500",  label: "Urban Heat / Cities" },
+            { color: "bg-red-700",     label: "Deforestation" },
+            { color: "bg-yellow-800",  label: "Mining Zones" },
+            { color: "bg-green-400",   label: "Restoration Projects" },
+          ].map(item => (
+            <div key={item.label} className="flex items-center gap-1.5">
+              <div className={`w-2 h-2 rounded-full ${item.color}`} />
+              <span className="font-data text-[8px] text-muted-foreground">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
 
+interface PulseGraphProps {
+  stability?: number;
+  alertLevel?: "nominal" | "warning" | "critical";
+}
+
 /* ---- Generate an ECG-like planetary pulse waveform ---- */
 function generateWaveform(points: number, stability: number): number[] {
   const wave: number[] = [];
@@ -29,7 +34,7 @@ function generateWaveform(points: number, stability: number): number[] {
 const POINTS = 200;
 const HISTORY_LINES = 4;
 
-export default function PulseGraph() {
+export default function PulseGraph({ stability = 0.72, alertLevel = "warning" }: PulseGraphProps) {
   const [waveforms, setWaveforms] = useState<number[][]>(() =>
     Array.from({ length: HISTORY_LINES }, (_, i) =>
       generateWaveform(POINTS, 0.72 - i * 0.04)
@@ -42,13 +47,13 @@ export default function PulseGraph() {
     intervalRef.current = setInterval(() => {
       setWaveforms(prev => {
         const next = [...prev];
-        next[currentIndex % HISTORY_LINES] = generateWaveform(POINTS, 0.72);
+        next[currentIndex % HISTORY_LINES] = generateWaveform(POINTS, stability);
         return next;
       });
       setCurrentIndex(i => i + 1);
     }, 2400);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [currentIndex]);
+  }, [currentIndex, stability]);
 
   const svgWidth = 600;
   const svgHeight = 80;
@@ -65,12 +70,14 @@ export default function PulseGraph() {
       .join(" ");
   }
 
-  // System metrics
+  const stabilityPct = (stability * 100).toFixed(1);
+  const statusColor  = alertLevel === "critical" ? "text-critical" : alertLevel === "warning" ? "text-warning" : "text-nominal";
+  const statusLabel  = alertLevel === "critical" ? "CRITICAL" : alertLevel === "warning" ? "STRESSED" : "STABLE";
   const metrics = [
-    { label: "STABILITY INDEX", value: "72.4", unit: "%", color: "text-warning" },
-    { label: "OSCILLATION",     value: "0.34", unit: "σ",  color: "text-nominal" },
-    { label: "VARIANCE",        value: "↑2.1", unit: "%",  color: "text-critical" },
-    { label: "FREQ",            value: "11.2", unit: "yr⁻¹", color: "text-nominal" },
+    { label: "STABILITY INDEX", value: stabilityPct, unit: "%",      color: statusColor },
+    { label: "OSCILLATION",     value: "0.34",        unit: "σ",     color: "text-nominal" },
+    { label: "VARIANCE",        value: "↑2.1",        unit: "%",     color: "text-critical" },
+    { label: "FREQ",            value: "11.2",         unit: "yr⁻¹", color: "text-nominal" },
   ];
 
   return (
@@ -167,9 +174,9 @@ export default function PulseGraph() {
         </div>
 
         {/* Status tag */}
-        <div className="absolute top-2 left-2 flex items-center gap-1 bg-background/60 rounded px-1.5 py-0.5 border border-warning/20">
-          <span className="w-1 h-1 rounded-full bg-warning animate-pulse-dot" />
-          <span className="font-data text-[9px] text-warning tracking-widest">STRESSED</span>
+        <div className={`absolute top-2 left-2 flex items-center gap-1 bg-background/60 rounded px-1.5 py-0.5 border ${alertLevel === "critical" ? "border-critical/30" : alertLevel === "warning" ? "border-warning/20" : "border-nominal/20"}`}>
+          <span className={`w-1 h-1 rounded-full animate-pulse-dot ${alertLevel === "critical" ? "bg-critical" : alertLevel === "warning" ? "bg-warning" : "bg-nominal"}`} />
+          <span className={`font-data text-[9px] tracking-widest ${statusColor}`}>{statusLabel}</span>
         </div>
       </div>
 
