@@ -192,13 +192,19 @@ function MiniGlobe({ year, label, activeLayer }: { year: number; label: string; 
 
 interface TimeSliderProps {
   activeLayer?: string;
+  onYearChange?: (year: number) => void;
 }
 
-export default function TimeSlider({ activeLayer = "none" }: TimeSliderProps) {
+export default function TimeSlider({ activeLayer = "none", onYearChange }: TimeSliderProps) {
   const [year, setYear]         = useState(2024);
   const [playing, setPlaying]   = useState(false);
   const [compare, setCompare]   = useState(false);
   const intervalRef             = useRef<number | null>(null);
+
+  const handleYearChange = useCallback((y: number) => {
+    setYear(y);
+    onYearChange?.(y);
+  }, [onYearChange]);
 
   const handleReset = useCallback(() => {
     setYear(START_YEAR);

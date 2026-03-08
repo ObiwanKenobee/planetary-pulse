@@ -37,7 +37,7 @@ function Atmosphere() {
 }
 
 /* ---- Globe mesh ---- */
-function EarthGlobe({ activeLayer }: { activeLayer: string }) {
+function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffset: number }) {
   const meshRef  = useRef<THREE.Mesh>(null);
   const cloudRef = useRef<THREE.Mesh>(null);
   const timeRef  = useRef(0);
