@@ -70,12 +70,14 @@ export default function PulseGraph({ stability = 0.72, alertLevel = "warning" }:
       .join(" ");
   }
 
-  // System metrics
+  const stabilityPct = (stability * 100).toFixed(1);
+  const statusColor  = alertLevel === "critical" ? "text-critical" : alertLevel === "warning" ? "text-warning" : "text-nominal";
+  const statusLabel  = alertLevel === "critical" ? "CRITICAL" : alertLevel === "warning" ? "STRESSED" : "STABLE";
   const metrics = [
-    { label: "STABILITY INDEX", value: "72.4", unit: "%", color: "text-warning" },
-    { label: "OSCILLATION",     value: "0.34", unit: "σ",  color: "text-nominal" },
-    { label: "VARIANCE",        value: "↑2.1", unit: "%",  color: "text-critical" },
-    { label: "FREQ",            value: "11.2", unit: "yr⁻¹", color: "text-nominal" },
+    { label: "STABILITY INDEX", value: stabilityPct, unit: "%",      color: statusColor },
+    { label: "OSCILLATION",     value: "0.34",        unit: "σ",     color: "text-nominal" },
+    { label: "VARIANCE",        value: "↑2.1",        unit: "%",     color: "text-critical" },
+    { label: "FREQ",            value: "11.2",         unit: "yr⁻¹", color: "text-nominal" },
   ];
 
   return (
