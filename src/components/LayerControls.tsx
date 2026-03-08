@@ -18,6 +18,7 @@ export const LAYERS: Layer[] = [
   { id: "heat",   label: "HEAT ISLANDS",  icon: "🔥", color: "hsl(0 85% 60%)",    description: "Urban heat zones"     },
   { id: "soil",   label: "SOIL",          icon: "🌱", color: "hsl(30 60% 45%)",   description: "Moisture index"       },
   { id: "impact", label: "HUMAN IMPACT",  icon: "🏭", color: "hsl(290 80% 65%)",  description: "Cities · Mines · Restoration" },
+  { id: "regen",  label: "REGEN CAPITAL", icon: "💚", color: "hsl(142 90% 45%)",  description: "Capital deployed · Recovery signal" },
 ];
 
 interface LayerControlsProps {

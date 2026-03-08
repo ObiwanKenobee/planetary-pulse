@@ -49,7 +49,8 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
     co2:    new THREE.Vector3(0.9, 0.5, 0.1),
     heat:   new THREE.Vector3(1.0, 0.2, 0.1),
     soil:   new THREE.Vector3(0.6, 0.4, 0.1),
-    impact: new THREE.Vector3(0.8, 0.3, 0.9), // human impact — magenta/violet
+    impact:  new THREE.Vector3(0.8, 0.3, 0.9), // human impact — magenta/violet
+    regen:   new THREE.Vector3(0.1, 0.9, 0.4), // regenerative finance — vivid green
     none:   new THREE.Vector3(0.08, 0.45, 0.6),
   };
 
