@@ -176,10 +176,18 @@ function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffs
           float spec = pow(max(dot(vNormal,normalize(vec3(0.5,0.8,1.0))),0.0),32.0);
           col += vec3(0.1,0.4,0.6)*spec*(1.0-land)*0.5;
 
-          gl_FragColor = vec4(col,1.0);
+        // Historical year effect: ice extent shrinks, CO2 haze grows, forest dims
+        float iceShrink   = yearOffset * 0.43;
+        float poleMod     = smoothstep(0.7*(1.0-iceShrink), 0.95*(1.0-iceShrink), abs(vUv.y-0.5)*2.0);
+        col = mix(col, iceColor, poleMod * 0.5);
+        col = mix(col, vec3(0.55,0.38,0.08), yearOffset*0.08*(1.0-land)*0.5);
+
+        gl_FragColor = vec4(col,1.0);
         }
       `,
     });
+    matRef.current = mat;
+    return mat;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLayer]);
 
