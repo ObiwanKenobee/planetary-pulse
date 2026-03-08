@@ -216,15 +216,17 @@ export default function TimeSlider({ activeLayer = "none", onYearChange }: TimeS
     if (playing) {
       intervalRef.current = window.setInterval(() => {
         setYear(y => {
-          if (y >= END_YEAR) { setPlaying(false); return END_YEAR; }
-          return y + 1;
+          const next = y >= END_YEAR ? END_YEAR : y + 1;
+          if (y >= END_YEAR) setPlaying(false);
+          onYearChange?.(next);
+          return next;
         });
       }, 120);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [playing]);
+  }, [playing, onYearChange]);
 
   const stats = getYearStats(year);
   const t     = (year - START_YEAR) / (END_YEAR - START_YEAR);
