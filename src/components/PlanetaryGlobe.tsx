@@ -279,6 +279,25 @@ export default function PlanetaryGlobe({ activeLayer }: { activeLayer: string })
           ))}
         </div>
       )}
+
+      {/* Regenerative Finance legend */}
+      {activeLayer === "regen" && (
+        <div className="absolute bottom-8 left-3 flex flex-col gap-1 bg-background/70 rounded px-2 py-2 border border-border/30">
+          {[
+            { color: "bg-yellow-400",  label: "Capital Injection" },
+            { color: "bg-amber-500",   label: "Fund Deployment" },
+            { color: "bg-green-400",   label: "Forest Recovery" },
+            { color: "bg-emerald-400", label: "Wetland Restoration" },
+            { color: "bg-cyan-400",    label: "Blue Carbon (Ocean)" },
+            { color: "bg-red-800",     label: "Residual Stress" },
+          ].map(item => (
+            <div key={item.label} className="flex items-center gap-1.5">
+              <div className={`w-2 h-2 rounded-full ${item.color}`} />
+              <span className="font-data text-[8px] text-muted-foreground">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

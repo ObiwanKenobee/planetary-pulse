@@ -10,6 +10,7 @@ import TippingPointModal, { ALL_ALERTS } from "@/components/TippingPointModal";
 import EcosystemRadar from "@/components/EcosystemRadar";
 import TimeSlider from "@/components/TimeSlider";
 import StressMap from "@/components/StressMap";
+import CriticalAlertBanner from "@/components/CriticalAlertBanner";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 
 export default function Index() {
