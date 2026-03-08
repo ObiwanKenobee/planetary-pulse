@@ -265,7 +265,7 @@ function OrbitalRings() {
   );
 }
 
-export default function PlanetaryGlobe({ activeLayer }: { activeLayer: string }) {
+export default function PlanetaryGlobe({ activeLayer, yearOffset = 1 }: { activeLayer: string; yearOffset?: number }) {
   return (
     <div className="relative w-full h-full">
       <div className="absolute inset-0 bg-globe-glow" />
