@@ -143,6 +143,13 @@ export default function Index() {
 
       {/* Tipping Point Detail Modal */}
       <TippingPointModal alertId={activeAlert} onClose={() => setActiveAlert(null)} />
+
+      {/* Critical Alert Banner */}
+      <CriticalAlertBanner
+        vitals={realtimeData.vitals}
+        tippingAlerts={ALL_ALERTS}
+        onAlertClick={setActiveAlert}
+      />
     </div>
   );
 }
