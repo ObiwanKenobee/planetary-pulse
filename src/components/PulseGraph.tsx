@@ -34,7 +34,7 @@ function generateWaveform(points: number, stability: number): number[] {
 const POINTS = 200;
 const HISTORY_LINES = 4;
 
-export default function PulseGraph() {
+export default function PulseGraph({ stability = 0.72, alertLevel = "warning" }: PulseGraphProps) {
   const [waveforms, setWaveforms] = useState<number[][]>(() =>
     Array.from({ length: HISTORY_LINES }, (_, i) =>
       generateWaveform(POINTS, 0.72 - i * 0.04)
