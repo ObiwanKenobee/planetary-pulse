@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import * as THREE from "three";
@@ -37,7 +37,7 @@ function Atmosphere() {
 }
 
 /* ---- Globe mesh ---- */
-function EarthGlobe({ activeLayer }: { activeLayer: string }) {
+function EarthGlobe({ activeLayer, yearOffset }: { activeLayer: string; yearOffset: number }) {
   const meshRef  = useRef<THREE.Mesh>(null);
   const cloudRef = useRef<THREE.Mesh>(null);
   const timeRef  = useRef(0);
@@ -58,14 +58,26 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
   const isRegen  = activeLayer === "regen";
   const layerVec = layerColors[activeLayer] ?? layerColors["none"];
 
+  // Update layer uniforms when activeLayer or yearOffset changes (without full shader rebuild)
+  const matRef = useRef<THREE.ShaderMaterial | null>(null);
+  useEffect(() => {
+    if (!matRef.current) return;
+    matRef.current.uniforms.layerColor.value     = layerVec;
+    matRef.current.uniforms.layerIntensity.value = activeLayer !== "none" ? 0.38 : 0.0;
+    matRef.current.uniforms.isImpact.value       = isImpact ? 1.0 : 0.0;
+    matRef.current.uniforms.isRegen.value        = isRegen  ? 1.0 : 0.0;
+    matRef.current.uniforms.yearOffset.value     = yearOffset;
+  }, [activeLayer, yearOffset, layerVec, isImpact, isRegen]);
+
   const globeMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
+    const mat = new THREE.ShaderMaterial({
       uniforms: {
         time:           { value: 0 },
         layerColor:     { value: layerVec },
         layerIntensity: { value: activeLayer !== "none" ? 0.38 : 0.0 },
         isImpact:       { value: isImpact ? 1.0 : 0.0 },
         isRegen:        { value: isRegen  ? 1.0 : 0.0 },
+        yearOffset:     { value: yearOffset },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -78,6 +90,7 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
       `,
       fragmentShader: `
         uniform float time;
+        uniform float yearOffset;
         uniform vec3  layerColor;
         uniform float layerIntensity;
         uniform float isImpact;
@@ -101,10 +114,20 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
           float n1   = noise(vUv*5.0  + vec2(time*0.004));
           float n2   = noise(vUv*12.0 + vec2(0.3));
           float land = smoothstep(0.42,0.56, n1*0.7+n2*0.3);
-          float pole = smoothstep(0.7,0.95, abs(vUv.y-0.5)*2.0);
 
-          vec3 col = mix(oceanColor, landColor, land);
+          // Historical year: ice extent shrinks from 1980→2024
+          float iceExtent = 1.0 - yearOffset * 0.43;
+          float pole = smoothstep(0.7*iceExtent, 0.95*iceExtent, abs(vUv.y-0.5)*2.0);
+
+          // Forest dims from deforestation
+          float forestVitality = mix(1.0, 0.6, yearOffset);
+          vec3 forestLand = mix(landColor, vec3(0.08,0.20,0.08), (1.0-forestVitality)*0.5);
+
+          vec3 col = mix(oceanColor, forestLand, land);
           col      = mix(col, iceColor, pole);
+
+          // CO2 haze over ocean (subtle amber tint)
+          col = mix(col, vec3(0.45,0.35,0.10), yearOffset*0.05*(1.0-land));
 
           // Shimmer
           col += noise(vUv*30.0+vec2(time*0.02))*0.05*(1.0-land);
@@ -130,28 +153,20 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
           if(isRegen > 0.5){
             float slowPulse = 0.5+0.5*sin(time*0.8);
             float fastPulse = 0.5+0.5*sin(time*3.0);
-
-            // Capital nodes — bright gold/amber pulses where money flows
             float cap1 = smoothstep(0.72,0.80, noise(vUv*20.0+vec2(4.1)))*land;
             float cap2 = smoothstep(0.75,0.82, noise(vUv*25.0+vec2(5.3)))*land;
             float cap3 = smoothstep(0.78,0.85, noise(vUv*17.0+vec2(6.7)))*land;
-            col = mix(col, vec3(1.0,0.85,0.0), cap1*0.7*fastPulse);  // gold — capital injection
-            col = mix(col, vec3(0.9,0.6,0.1),  cap2*0.5*fastPulse);  // amber — fund deployment
-            col = mix(col, vec3(1.0,0.75,0.2), cap3*0.4*fastPulse);  // yellow — project finance
-
-            // Recovery signals — expanding green bloom from capital zones
+            col = mix(col, vec3(1.0,0.85,0.0), cap1*0.7*fastPulse);
+            col = mix(col, vec3(0.9,0.6,0.1),  cap2*0.5*fastPulse);
+            col = mix(col, vec3(1.0,0.75,0.2), cap3*0.4*fastPulse);
             float rec1 = smoothstep(0.55,0.68, noise(vUv*11.0+vec2(4.1)))*land;
             float rec2 = smoothstep(0.58,0.70, noise(vUv*8.0 +vec2(5.3)))*land;
             float rec3 = smoothstep(0.60,0.72, noise(vUv*13.0+vec2(6.7)))*land;
-            col = mix(col, vec3(0.05,0.95,0.35), rec1*0.65*slowPulse); // bright green — forest recovery
-            col = mix(col, vec3(0.1, 0.80,0.4),  rec2*0.55*slowPulse); // medium green — vegetation
-            col = mix(col, vec3(0.2, 0.70,0.5),  rec3*0.45*slowPulse); // teal-green — wetland restoration
-
-            // Degraded zones still visible — dark red residual stress
+            col = mix(col, vec3(0.05,0.95,0.35), rec1*0.65*slowPulse);
+            col = mix(col, vec3(0.1, 0.80,0.4),  rec2*0.55*slowPulse);
+            col = mix(col, vec3(0.2, 0.70,0.5),  rec3*0.45*slowPulse);
             float stress = smoothstep(0.62,0.70, noise(vUv*9.0+vec2(2.5)))*land;
             col = mix(col, vec3(0.55,0.1,0.0), stress*0.25*(1.0-slowPulse*0.5));
-
-            // Ocean blue carbon — seagrass & mangrove coastal zones pulse cyan
             float coastal = smoothstep(0.65,0.73, noise(vUv*16.0+vec2(7.9)))*(1.0-land);
             col = mix(col, vec3(0.0,0.9,0.7), coastal*0.5*slowPulse);
           }
@@ -168,6 +183,8 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
         }
       `,
     });
+    matRef.current = mat;
+    return mat;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLayer]);
 
@@ -245,7 +262,7 @@ function OrbitalRings() {
   );
 }
 
-export default function PlanetaryGlobe({ activeLayer }: { activeLayer: string }) {
+export default function PlanetaryGlobe({ activeLayer, yearOffset = 1 }: { activeLayer: string; yearOffset?: number }) {
   return (
     <div className="relative w-full h-full">
       <div className="absolute inset-0 bg-globe-glow" />
@@ -254,7 +271,7 @@ export default function PlanetaryGlobe({ activeLayer }: { activeLayer: string })
         <directionalLight position={[5, 3, 5]}   intensity={1.2} color="#b0e8ff" />
         <directionalLight position={[-5, -3, -2]} intensity={0.3} color="#001a2e" />
         <Stars radius={120} depth={60} count={3000} factor={3} saturation={0.1} fade />
-        <EarthGlobe activeLayer={activeLayer} />
+        <EarthGlobe activeLayer={activeLayer} yearOffset={yearOffset} />
         <OrbitalRings />
       </Canvas>
 

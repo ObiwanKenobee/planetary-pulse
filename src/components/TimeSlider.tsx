@@ -192,13 +192,19 @@ function MiniGlobe({ year, label, activeLayer }: { year: number; label: string; 
 
 interface TimeSliderProps {
   activeLayer?: string;
+  onYearChange?: (year: number) => void;
 }
 
-export default function TimeSlider({ activeLayer = "none" }: TimeSliderProps) {
+export default function TimeSlider({ activeLayer = "none", onYearChange }: TimeSliderProps) {
   const [year, setYear]         = useState(2024);
   const [playing, setPlaying]   = useState(false);
   const [compare, setCompare]   = useState(false);
   const intervalRef             = useRef<number | null>(null);
+
+  const handleYearChange = useCallback((y: number) => {
+    setYear(y);
+    onYearChange?.(y);
+  }, [onYearChange]);
 
   const handleReset = useCallback(() => {
     setYear(START_YEAR);
@@ -210,15 +216,17 @@ export default function TimeSlider({ activeLayer = "none" }: TimeSliderProps) {
     if (playing) {
       intervalRef.current = window.setInterval(() => {
         setYear(y => {
-          if (y >= END_YEAR) { setPlaying(false); return END_YEAR; }
-          return y + 1;
+          const next = y >= END_YEAR ? END_YEAR : y + 1;
+          if (y >= END_YEAR) setPlaying(false);
+          onYearChange?.(next);
+          return next;
         });
       }, 120);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [playing]);
+  }, [playing, onYearChange]);
 
   const stats = getYearStats(year);
   const t     = (year - START_YEAR) / (END_YEAR - START_YEAR);
@@ -337,14 +345,14 @@ export default function TimeSlider({ activeLayer = "none" }: TimeSliderProps) {
               <Slider
                 min={START_YEAR} max={END_YEAR} step={1}
                 value={[year]}
-                onValueChange={([v]) => setYear(v)}
+                onValueChange={([v]) => handleYearChange(v)}
                 className="w-full"
               />
               <div className="flex justify-between mt-1.5">
                 {[1980, 1990, 2000, 2010, 2020, 2024].map(y => (
                   <button
                     key={y}
-                    onClick={() => setYear(y)}
+                    onClick={() => handleYearChange(y)}
                     className={`font-data text-[8px] transition-colors ${year === y ? "text-primary" : "text-muted-foreground/50 hover:text-muted-foreground"}`}
                   >
                     {y}
