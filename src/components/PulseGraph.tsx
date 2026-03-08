@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
 
+interface PulseGraphProps {
+  stability?: number;
+  alertLevel?: "nominal" | "warning" | "critical";
+}
+
 /* ---- Generate an ECG-like planetary pulse waveform ---- */
 function generateWaveform(points: number, stability: number): number[] {
   const wave: number[] = [];
