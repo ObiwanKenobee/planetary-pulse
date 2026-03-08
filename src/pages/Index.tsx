@@ -10,6 +10,7 @@ import TippingPointModal, { ALL_ALERTS } from "@/components/TippingPointModal";
 import EcosystemRadar from "@/components/EcosystemRadar";
 import TimeSlider from "@/components/TimeSlider";
 import StressMap from "@/components/StressMap";
+import CriticalAlertBanner from "@/components/CriticalAlertBanner";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 
 export default function Index() {
@@ -115,7 +116,7 @@ export default function Index() {
                 transition={{ duration: 0.5, delay: 0.35 }}
                 className="panel-glass rounded-sm p-3 shadow-panel"
               >
-                <TimeSlider />
+                <TimeSlider activeLayer={activeLayer} />
               </motion.div>
             </div>
           </div>
@@ -142,6 +143,13 @@ export default function Index() {
 
       {/* Tipping Point Detail Modal */}
       <TippingPointModal alertId={activeAlert} onClose={() => setActiveAlert(null)} />
+
+      {/* Critical Alert Banner */}
+      <CriticalAlertBanner
+        vitals={realtimeData.vitals}
+        tippingAlerts={ALL_ALERTS}
+        onAlertClick={setActiveAlert}
+      />
     </div>
   );
 }
