@@ -55,6 +55,7 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
   };
 
   const isImpact = activeLayer === "impact";
+  const isRegen  = activeLayer === "regen";
   const layerVec = layerColors[activeLayer] ?? layerColors["none"];
 
   const globeMaterial = useMemo(() => {
@@ -64,6 +65,7 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
         layerColor:     { value: layerVec },
         layerIntensity: { value: activeLayer !== "none" ? 0.38 : 0.0 },
         isImpact:       { value: isImpact ? 1.0 : 0.0 },
+        isRegen:        { value: isRegen  ? 1.0 : 0.0 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -79,6 +81,7 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
         uniform vec3  layerColor;
         uniform float layerIntensity;
         uniform float isImpact;
+        uniform float isRegen;
         varying vec2 vUv;
         varying vec3 vNormal;
 
@@ -117,10 +120,40 @@ function EarthGlobe({ activeLayer }: { activeLayer: string }) {
             float defor  = smoothstep(0.55,0.65, noise(vUv*9.0 +vec2(1.3)))*land;
             float mining = smoothstep(0.70,0.78, noise(vUv*22.0+vec2(2.1)))*land;
             float restore= smoothstep(0.75,0.82, noise(vUv*14.0+vec2(3.5)))*land;
-            col = mix(col, vec3(1.0,0.4,0.05), city*0.5*pulse);     // orange cities
-            col = mix(col, vec3(0.7,0.2,0.0),  defor*0.55);          // dark red deforestation
-            col = mix(col, vec3(0.5,0.4,0.1),  mining*0.45);         // brown mining
-            col = mix(col, vec3(0.1,0.9,0.3),  restore*0.5*pulse);   // green restoration
+            col = mix(col, vec3(1.0,0.4,0.05), city*0.5*pulse);
+            col = mix(col, vec3(0.7,0.2,0.0),  defor*0.55);
+            col = mix(col, vec3(0.5,0.4,0.1),  mining*0.45);
+            col = mix(col, vec3(0.1,0.9,0.3),  restore*0.5*pulse);
+          }
+
+          // Regenerative Finance: capital deployment → ecosystem recovery signals
+          if(isRegen > 0.5){
+            float slowPulse = 0.5+0.5*sin(time*0.8);
+            float fastPulse = 0.5+0.5*sin(time*3.0);
+
+            // Capital nodes — bright gold/amber pulses where money flows
+            float cap1 = smoothstep(0.72,0.80, noise(vUv*20.0+vec2(4.1)))*land;
+            float cap2 = smoothstep(0.75,0.82, noise(vUv*25.0+vec2(5.3)))*land;
+            float cap3 = smoothstep(0.78,0.85, noise(vUv*17.0+vec2(6.7)))*land;
+            col = mix(col, vec3(1.0,0.85,0.0), cap1*0.7*fastPulse);  // gold — capital injection
+            col = mix(col, vec3(0.9,0.6,0.1),  cap2*0.5*fastPulse);  // amber — fund deployment
+            col = mix(col, vec3(1.0,0.75,0.2), cap3*0.4*fastPulse);  // yellow — project finance
+
+            // Recovery signals — expanding green bloom from capital zones
+            float rec1 = smoothstep(0.55,0.68, noise(vUv*11.0+vec2(4.1)))*land;
+            float rec2 = smoothstep(0.58,0.70, noise(vUv*8.0 +vec2(5.3)))*land;
+            float rec3 = smoothstep(0.60,0.72, noise(vUv*13.0+vec2(6.7)))*land;
+            col = mix(col, vec3(0.05,0.95,0.35), rec1*0.65*slowPulse); // bright green — forest recovery
+            col = mix(col, vec3(0.1, 0.80,0.4),  rec2*0.55*slowPulse); // medium green — vegetation
+            col = mix(col, vec3(0.2, 0.70,0.5),  rec3*0.45*slowPulse); // teal-green — wetland restoration
+
+            // Degraded zones still visible — dark red residual stress
+            float stress = smoothstep(0.62,0.70, noise(vUv*9.0+vec2(2.5)))*land;
+            col = mix(col, vec3(0.55,0.1,0.0), stress*0.25*(1.0-slowPulse*0.5));
+
+            // Ocean blue carbon — seagrass & mangrove coastal zones pulse cyan
+            float coastal = smoothstep(0.65,0.73, noise(vUv*16.0+vec2(7.9)))*(1.0-land);
+            col = mix(col, vec3(0.0,0.9,0.7), coastal*0.5*slowPulse);
           }
 
           // Rim lighting
