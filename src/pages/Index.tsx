@@ -229,7 +229,7 @@ export default function Index() {
           animate={{ opacity: 1, y: 0 }}
           className="panel-glass px-3 py-2 shrink-0 border-b border-border/30 flex items-center justify-between"
         >
-          <HealthScore score={realtimeData.healthScore} />
+          <HealthScore score={realtimeData.healthScore} vitals={realtimeData.vitals} />
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setOverviewActive(true)}
