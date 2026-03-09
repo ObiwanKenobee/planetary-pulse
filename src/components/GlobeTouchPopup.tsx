@@ -113,8 +113,6 @@ interface RayProps {
 }
 
 export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
-  const sphereRef = useRef<THREE.Mesh>(null);
-
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     const clientX = e.clientX;
@@ -130,7 +128,6 @@ export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
 
   return (
     <mesh
-      ref={sphereRef}
       onPointerDown={handlePointerDown}
       onPointerMissed={handlePointerMissed}
     >

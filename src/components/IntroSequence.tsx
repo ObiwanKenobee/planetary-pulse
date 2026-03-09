@@ -108,6 +108,13 @@ export default function IntroSequence({ onComplete }: IntroSequenceProps) {
   const [lineIndex, setLineIndex] = useState(0);
   const [shownLines, setShownLines] = useState<string[]>([]);
   const [fadeOut, setFadeOut] = useState(false);
+  const timersRef = useRef<number[]>([]);
+
+  const skip = () => {
+    timersRef.current.forEach(clearTimeout);
+    setFadeOut(true);
+    window.setTimeout(() => { setVisible(false); onComplete(); }, 350);
+  };
 
   // Advance status lines on a schedule
   useEffect(() => {
@@ -126,6 +133,7 @@ export default function IntroSequence({ onComplete }: IntroSequenceProps) {
     // Trigger fade-out at 3.6s → call onComplete at 4.4s
     const fadeTimer = window.setTimeout(() => setFadeOut(true), 3600);
     const doneTimer = window.setTimeout(() => { setVisible(false); onComplete(); }, 4400);
+    timersRef.current = [...timers, fadeTimer, doneTimer];
 
     return () => {
       timers.forEach(clearTimeout);
