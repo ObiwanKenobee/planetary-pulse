@@ -126,8 +126,6 @@ export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
     // The intersection point is already available on the ThreeEvent
     const pt = e.point.clone().normalize();
     const region = nearestRegion(pt);
-    onHit(region, rect.left + (clientX - rect.left), rect.top + (clientY - rect.top));
-    // Use native screen coords for popup positioning
     onHit(region, clientX, clientY);
   }, [gl, onHit]);
 
