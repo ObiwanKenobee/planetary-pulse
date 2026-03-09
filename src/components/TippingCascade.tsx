@@ -428,18 +428,15 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-auto bg-critical/8 border border-critical/20 rounded-sm p-3"
                   >
-                    <div className="font-data text-[8px] text-critical tracking-widest mb-2">PROJECTED IMPACT</div>
-                    {[
-                      { label: "CO₂ Released",   val: "+90 Gt" },
-                      { label: "Temp Increase",  val: "+1.5°C" },
-                      { label: "Systems Tipped", val: `${activeNodes.size}` },
-                      { label: "Recovery ETA",   val: ">500 yr" },
-                    ].map(m => (
-                      <div key={m.label} className="flex justify-between py-0.5 border-b border-border/10 last:border-0">
-                        <span className="font-data text-[8px] text-muted-foreground/60">{m.label}</span>
-                        <span className="font-data text-[9px] text-critical font-semibold">{m.val}</span>
-                      </div>
-                    ))}
+                     <div className="font-data text-[8px] text-critical tracking-widest mb-2">PROJECTED IMPACT</div>
+                     {chain.impact.map(m => (
+                       <div key={m.label} className="flex justify-between py-0.5 border-b border-border/10 last:border-0">
+                         <span className="font-data text-[8px] text-muted-foreground/60">{m.label}</span>
+                         <span className="font-data text-[9px] text-critical font-semibold">
+                           {m.label === "Systems Tipped" ? `${activeNodes.size}` : m.val}
+                         </span>
+                       </div>
+                     ))}
                   </motion.div>
                 )}
               </div>

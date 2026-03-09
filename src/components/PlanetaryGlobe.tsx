@@ -1,7 +1,9 @@
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo, useEffect, useState, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
+import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
+import { GlobeTouchRaycaster, GlobeRegionPopup } from "./GlobeTouchPopup";
 
 /* ---- Atmosphere halo ---- */
 function Atmosphere() {
