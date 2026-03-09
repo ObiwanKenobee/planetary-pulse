@@ -1,11 +1,14 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Globe, AlertTriangle, Wifi, Clock } from "lucide-react";
+import type { VitalData } from "@/hooks/useRealtimeData";
 
 interface HealthScoreProps {
   score: number; // 0-100
+  vitals?: VitalData[];
 }
 
-export default function HealthScore({ score }: HealthScoreProps) {
+export default function HealthScore({ score, vitals = [] }: HealthScoreProps) {
   const getScoreColor = (s: number) => {
     if (s >= 75) return "text-healthy";
     if (s >= 55) return "text-warning";
@@ -19,26 +22,61 @@ export default function HealthScore({ score }: HealthScoreProps) {
   };
 
   const getScoreBarColor = (s: number) => {
-    if (s >= 75) return "bg-healthy";
-    if (s >= 55) return "bg-warning";
-    return "bg-critical";
+    if (s >= 75) return "hsl(142 70% 45%)";
+    if (s >= 55) return "hsl(38 95% 55%)";
+    return "hsl(0 85% 60%)";
   };
 
   const systemTime = new Date().toISOString().replace("T", " ").split(".")[0] + " UTC";
 
-  const subsystems = [
-    { label: "CLIMATE",    pct: 64, status: "warning"  },
-    { label: "BIOSPHERE",  pct: 74, status: "nominal"  },
-    { label: "CRYOSPHERE", pct: 48, status: "critical" },
-    { label: "HYDROSPHERE",pct: 61, status: "warning"  },
-    { label: "ATMOSPHERE", pct: 56, status: "warning"  },
-  ];
+  // Live subsystem bars derived from vitals if available, otherwise fallback
+  const subsystems = useMemo(() => {
+    if (vitals.length === 0) {
+      return [
+        { label: "CLIMATE",     pct: 64, status: "warning"  },
+        { label: "BIOSPHERE",   pct: 74, status: "nominal"  },
+        { label: "CRYOSPHERE",  pct: 48, status: "critical" },
+        { label: "HYDROSPHERE", pct: 61, status: "warning"  },
+        { label: "ATMOSPHERE",  pct: 56, status: "warning"  },
+      ];
+    }
+    const map: Record<string, { label: string; ids: string[] }> = {
+      CLIMATE:     { label: "CLIMATE",     ids: ["temp"] },
+      BIOSPHERE:   { label: "BIOSPHERE",   ids: ["biodiversity", "vegetation"] },
+      CRYOSPHERE:  { label: "CRYOSPHERE",  ids: [] },
+      HYDROSPHERE: { label: "HYDROSPHERE", ids: ["freshwater", "ocean"] },
+      ATMOSPHERE:  { label: "ATMOSPHERE",  ids: ["co2"] },
+    };
+    return Object.values(map).map(sys => {
+      const related = vitals.filter(v => sys.ids.includes(v.id));
+      if (related.length === 0) {
+        return { label: sys.label, pct: 60, status: "warning" as const };
+      }
+      const avgProgress = related.reduce((sum, v) => sum + v.progress, 0) / related.length;
+      // Invert progress for "bad = high" vitals (all our vitals go worse as pct rises)
+      const health = Math.round(100 - avgProgress);
+      const status = health < 40 ? "critical" : health < 65 ? "warning" : "nominal";
+      return { label: sys.label, pct: health, status };
+    });
+  }, [vitals]);
+
+  // Live alert count
+  const criticalCount = vitals.filter(v => v.status === "critical").length;
+  const warningCount  = vitals.filter(v => v.status === "warning").length;
+  const alertText     = criticalCount > 0
+    ? `${criticalCount} CRITICAL`
+    : warningCount > 0
+    ? `${warningCount} ALERTS`
+    : null;
+  const alertColor    = criticalCount > 0 ? "text-critical" : "text-warning";
 
   const statusBarColor = (s: string) =>
     s === "critical" ? "bg-critical" : s === "warning" ? "bg-warning" : "bg-nominal";
 
+  const circumference = 100.53;
+
   return (
-    <div className="flex items-center gap-6 w-full">
+    <div className="flex items-center gap-5 w-full">
       {/* Logo & title */}
       <div className="flex items-center gap-3 shrink-0">
         <div className="relative">
@@ -55,20 +93,20 @@ export default function HealthScore({ score }: HealthScoreProps) {
         </div>
       </div>
 
-      {/* Divider */}
       <div className="w-px h-10 bg-border/60 shrink-0" />
 
       {/* Health score */}
       <div className="flex items-center gap-3 shrink-0">
         <div>
-          <div className="font-data text-[9px] tracking-[0.2em] text-muted-foreground mb-0.5">
+          <div className="font-data text-[9px] tracking-[0.2em] text-muted-foreground/70 mb-0.5">
             PLANETARY HEALTH INDEX
           </div>
           <div className="flex items-baseline gap-2">
             <motion.span
-              initial={{ opacity: 0, scale: 0.8 }}
+              key={score}
+              initial={{ opacity: 0.6, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
               className={`font-display text-3xl font-bold ${getScoreColor(score)}`}
             >
               {score}
@@ -79,25 +117,23 @@ export default function HealthScore({ score }: HealthScoreProps) {
             </span>
           </div>
         </div>
-        {/* Score arc mini */}
+        {/* Score arc */}
         <div className="relative w-10 h-10 shrink-0">
           <svg viewBox="0 0 40 40" className="w-full h-full -rotate-90">
             <circle cx="20" cy="20" r="16" fill="none" stroke="hsl(220 20% 14%)" strokeWidth="3" />
             <motion.circle
               cx="20" cy="20" r="16" fill="none"
-              stroke={score >= 75 ? "hsl(142 70% 45%)" : score >= 55 ? "hsl(38 95% 55%)" : "hsl(0 85% 60%)"}
+              stroke={getScoreBarColor(score)}
               strokeWidth="3"
               strokeLinecap="round"
-              strokeDasharray={`${100.53} ${100.53}`}
-              initial={{ strokeDashoffset: 100.53 }}
-              animate={{ strokeDashoffset: 100.53 * (1 - score / 100) }}
-              transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+              strokeDasharray={`${circumference} ${circumference}`}
+              animate={{ strokeDashoffset: circumference * (1 - score / 100) }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
             />
           </svg>
         </div>
       </div>
 
-      {/* Divider */}
       <div className="w-px h-10 bg-border/60 shrink-0 hidden lg:block" />
 
       {/* Subsystem bars */}
@@ -105,16 +141,15 @@ export default function HealthScore({ score }: HealthScoreProps) {
         {subsystems.map(sys => (
           <div key={sys.label} className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-data text-[8px] text-muted-foreground tracking-widest">{sys.label}</span>
+              <span className="font-data text-[8px] text-muted-foreground/60 tracking-widest">{sys.label}</span>
               <span className={`font-data text-[8px] ${
                 sys.status === "critical" ? "text-critical" : sys.status === "warning" ? "text-warning" : "text-nominal"
               }`}>{sys.pct}%</span>
             </div>
             <div className="h-[3px] bg-muted rounded-full overflow-hidden">
               <motion.div
-                initial={{ width: 0 }}
                 animate={{ width: `${sys.pct}%` }}
-                transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
                 className={`h-full ${statusBarColor(sys.status)} rounded-full`}
               />
             </div>
@@ -123,11 +158,20 @@ export default function HealthScore({ score }: HealthScoreProps) {
       </div>
 
       {/* Status indicators */}
-      <div className="flex items-center gap-4 ml-auto shrink-0">
-        <div className="hidden xl:flex items-center gap-1.5">
-          <AlertTriangle className="w-3 h-3 text-warning" />
-          <span className="font-data text-[9px] text-warning tracking-wider">2 ALERTS</span>
-        </div>
+      <div className="flex items-center gap-3 ml-auto shrink-0">
+        {alertText && (
+          <div className="hidden xl:flex items-center gap-1.5">
+            <AlertTriangle className={`w-3 h-3 ${alertColor}`} />
+            <motion.span
+              key={alertText}
+              animate={{ opacity: [1, 0.5, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className={`font-data text-[9px] ${alertColor} tracking-wider`}
+            >
+              {alertText}
+            </motion.span>
+          </div>
+        )}
         <div className="flex items-center gap-1.5">
           <Wifi className="w-3 h-3 text-nominal" />
           <span className="font-data text-[9px] text-nominal tracking-wider hidden xl:inline">STREAMS ACTIVE</span>
