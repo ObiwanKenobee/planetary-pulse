@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
 
 /* ── Data stubs for globe regions ── */
-interface RegionData {
+export interface RegionData {
   name: string;
   lat: number;
   lon: number;

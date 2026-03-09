@@ -25,6 +25,7 @@ const START_YEAR = 1980;
 const END_YEAR   = 2024;
 
 export default function Index() {
+  const [introComplete, setIntroComplete] = useState(false);
   const [activeLayer, setActiveLayer]   = useState("none");
   const [activeAlert, setActiveAlert]   = useState<string | null>(null);
   const [overviewActive, setOverviewActive] = useState(false);
