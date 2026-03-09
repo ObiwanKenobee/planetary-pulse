@@ -72,8 +72,8 @@ export default function Index() {
           className="panel-glass rounded-sm px-4 py-2.5 shrink-0 shadow-panel"
         >
           <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <HealthScore score={realtimeData.healthScore} />
+          <div className="flex-1">
+              <HealthScore score={realtimeData.healthScore} vitals={realtimeData.vitals} />
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
