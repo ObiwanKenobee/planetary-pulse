@@ -389,7 +389,7 @@ export default function PlanetaryGlobe({
         <EarthGlobe activeLayer={activeLayer} yearOffset={yearOffset} focusLat={focusLat} focusLon={focusLon} />
         <OrbitalRings />
         <CameraController focusLat={focusLat} focusLon={focusLon} />
-        <GlobeTouchRaycaster onHit={handleGlobeHit} onMiss={handleGlobeMiss} />
+        <GlobeTouchRaycaster onHit={handleGlobeHit} />
       </Canvas>
 
       <div className="absolute top-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">LAT 00°00′N · LON 000°00′E</div>
