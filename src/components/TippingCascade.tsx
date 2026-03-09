@@ -102,13 +102,14 @@ interface TippingCascadeProps {
 
 export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
   const [triggered, setTriggered] = useState(false);
-  const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set(["amz"]));
+  const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set());
   const [activeEdges, setActiveEdges] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [chainKey] = useState<keyof typeof CASCADE_CHAINS>("amazon");
+  const [chainKey, setChainKey] = useState<keyof typeof CASCADE_CHAINS>("amazon");
   const timerRefs = useRef<number[]>([]);
 
   const chain = CASCADE_CHAINS[chainKey];
+  const firstNodeId = chain.nodes[0].id;
 
   // Key listener
   useEffect(() => {
@@ -117,27 +118,23 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  // Reset on open/close
+  // Reset on open/close or chain change
   useEffect(() => {
-    if (!open) {
-      timerRefs.current.forEach(clearTimeout);
-      setTriggered(false);
-      setActiveNodes(new Set(["amz"]));
-      setActiveEdges(new Set());
-      setSelectedNode(null);
-    }
-  }, [open]);
+    timerRefs.current.forEach(clearTimeout);
+    setTriggered(false);
+    setActiveNodes(new Set([firstNodeId]));
+    setActiveEdges(new Set());
+    setSelectedNode(null);
+  }, [open, chainKey, firstNodeId]);
 
   const runCascade = () => {
     setTriggered(true);
-    // Staggered activation: each node/edge gets a delay
     const delays = [0, 900, 1600, 2100, 2800, 3600, 4400];
     chain.nodes.forEach((node, idx) => {
-      if (idx === 0) return; // amz already active
+      if (idx === 0) return;
       const t = window.setTimeout(() => {
         setActiveNodes(prev => new Set([...prev, node.id]));
-        // activate incoming edges
-        chain.edges.forEach((edge, ei) => {
+        chain.edges.forEach(edge => {
           if (edge.to === node.id) {
             const et = window.setTimeout(() => {
               setActiveEdges(prev => new Set([...prev, `${edge.from}-${edge.to}`]));
@@ -153,7 +150,7 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
   const reset = () => {
     timerRefs.current.forEach(clearTimeout);
     setTriggered(false);
-    setActiveNodes(new Set(["amz"]));
+    setActiveNodes(new Set([firstNodeId]));
     setActiveEdges(new Set());
     setSelectedNode(null);
   };
