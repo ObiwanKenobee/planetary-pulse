@@ -122,17 +122,10 @@ export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
     onHit(region, clientX, clientY);
   }, [onHit]);
 
-  const handlePointerMissed = useCallback(() => {
-    onMiss();
-  }, [onMiss]);
-
   return (
-    <mesh
-      onPointerDown={handlePointerDown}
-      onPointerMissed={handlePointerMissed}
-    >
+    <mesh onPointerDown={handlePointerDown}>
       <sphereGeometry args={[1.05, 32, 32]} />
-      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
     </mesh>
   );
 }

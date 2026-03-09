@@ -376,7 +376,12 @@ export default function PlanetaryGlobe({
   return (
     <div ref={containerRef} className="relative w-full h-full">
       <div className="absolute inset-0 bg-globe-glow" />
-      <Canvas camera={{ position: [0, 0, 3], fov: 45 }} gl={{ antialias: true, alpha: true }} style={{ background: "transparent" }}>
+      <Canvas
+        camera={{ position: [0, 0, 3], fov: 45 }}
+        gl={{ antialias: true, alpha: true }}
+        style={{ background: "transparent" }}
+        onPointerMissed={handleGlobeMiss}
+      >
         <ambientLight intensity={0.15} />
         <directionalLight position={[5, 3, 5]}   intensity={1.2} color="#b0e8ff" />
         <directionalLight position={[-5, -3, -2]} intensity={0.3} color="#001a2e" />
