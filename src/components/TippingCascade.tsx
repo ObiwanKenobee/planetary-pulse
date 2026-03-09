@@ -21,14 +21,61 @@ interface CascadeEdge {
   label: string;
 }
 
-const CASCADE_CHAINS: Record<string, { nodes: CascadeNode[]; edges: CascadeEdge[]; title: string; description: string }> = {
+const CASCADE_CHAINS: Record<string, { nodes: CascadeNode[]; edges: CascadeEdge[]; title: string; description: string; impact: { label: string; val: string }[] }> = {
   amazon: {
     title: "Amazon Savannification Cascade",
     description:
       "The Amazon produces ~20% of its own rainfall through transpiration. Deforestation beyond a ~20–25% threshold could trigger a self-reinforcing dieback, drying the continent, disrupting monsoons, and emitting ~90 Gt CO₂ — igniting a global cascade.",
+    impact: [
+      { label: "CO₂ Released",   val: "+90 Gt" },
+      { label: "Temp Increase",  val: "+1.5°C" },
+      { label: "Systems Tipped", val: "6" },
+      { label: "Recovery ETA",   val: ">500 yr" },
+    ],
     nodes: [
-      {
-        id: "amz",
+      { id: "amz", label: "Amazon Tipping", region: "South America", icon: "🌿", probability: 100, delay: "TRIGGER", mechanic: "Deforestation + drought reduces moisture recycling. Forest cannot recover.", color: "text-critical", bgColor: "bg-critical" },
+      { id: "sahel", label: "Sahel Drying", region: "West Africa", icon: "🌵", probability: 74, delay: "~5–15 yr", mechanic: "Amazon collapse shifts ITCZ south, reducing West African monsoon rainfall by 20–30%.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "amoc", label: "AMOC Slowdown", region: "North Atlantic", icon: "🌊", probability: 68, delay: "~10–30 yr", mechanic: "+90 Gt CO₂ emissions raise global temps, accelerating Greenland melt, freshening Atlantic and weakening AMOC thermohaline circulation.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "arctic", label: "Arctic Sea Ice Loss", region: "Polar", icon: "🧊", probability: 82, delay: "~8–20 yr", mechanic: "CO₂ pulse + AMOC reduction amplifies Arctic warming 3–4× global mean. Summer sea ice collapses, triggering albedo feedback.", color: "text-critical", bgColor: "bg-critical" },
+      { id: "permafrost", label: "Permafrost Thaw", region: "Siberia / Canada", icon: "🏔️", probability: 61, delay: "~15–40 yr", mechanic: "Arctic warming unlocks 1,500 Gt of frozen carbon. CH₄ and CO₂ release accelerates warming by +0.3–0.5°C.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "gbr", label: "Coral Bleaching", region: "Indo-Pacific", icon: "🪸", probability: 55, delay: "~20–50 yr", mechanic: "Ocean warming (+0.5°C above 2024) + acidification from CO₂ pulse eliminates remaining heat-tolerant coral colonies.", color: "text-nominal", bgColor: "bg-nominal" },
+    ],
+    edges: [
+      { from: "amz", to: "sahel", label: "ITCZ shift" },
+      { from: "amz", to: "amoc", label: "+90 Gt CO₂" },
+      { from: "amoc", to: "arctic", label: "heat redistribution" },
+      { from: "arctic", to: "permafrost", label: "albedo feedback" },
+      { from: "permafrost", to: "gbr", label: "+CH₄ / +CO₂" },
+      { from: "amz", to: "gbr", label: "ocean acidification" },
+    ],
+  },
+
+  wais: {
+    title: "West Antarctic Ice Sheet Collapse",
+    description:
+      "The West Antarctic Ice Sheet sits on bedrock below sea level — making it vulnerable to marine ice sheet instability. Warm ocean water eroding the Thwaites glacier base could trigger irreversible collapse, raising sea levels by 3–5m and destabilizing global circulation systems.",
+    impact: [
+      { label: "Sea Level Rise",  val: "+3–5 m" },
+      { label: "Temp Increase",   val: "+0.5°C" },
+      { label: "Systems Tipped",  val: "5" },
+      { label: "Recovery ETA",    val: ">10,000 yr" },
+    ],
+    nodes: [
+      { id: "wais", label: "WAIS Collapse", region: "West Antarctica", icon: "🧊", probability: 100, delay: "TRIGGER", mechanic: "Warm Circumpolar Deep Water intrudes beneath Thwaites glacier, triggering marine ice sheet instability and irreversible retreat.", color: "text-critical", bgColor: "bg-critical" },
+      { id: "slr", label: "Sea Level Rise", region: "Global Coastlines", icon: "🌊", probability: 95, delay: "~100–500 yr", mechanic: "WAIS collapse contributes 3–5m of sea level rise. Coastal megacities, deltas, and island nations face inundation. ~1 billion people displaced.", color: "text-critical", bgColor: "bg-critical" },
+      { id: "amoc2", label: "AMOC Disruption", region: "North Atlantic", icon: "🌀", probability: 72, delay: "~50–200 yr", mechanic: "Massive freshwater influx from WAIS melt freshens the North Atlantic, weakening thermohaline density gradients and slowing AMOC by 30–50%.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "sahel2", label: "Sahel Monsoon Failure", region: "West Africa", icon: "🌵", probability: 58, delay: "~100–300 yr", mechanic: "AMOC slowdown shifts the ITCZ southward, weakening the West African monsoon by 15–25%, causing widespread Sahel desertification.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "boreal", label: "Boreal Die-back", region: "Canada / Siberia", icon: "🌲", probability: 48, delay: "~150–400 yr", mechanic: "AMOC collapse intensifies continental warming across the boreal belt, driving drought, beetle outbreaks, and megafires — converting 1.5 Bha of forest to grassland.", color: "text-nominal", bgColor: "bg-nominal" },
+    ],
+    edges: [
+      { from: "wais",  to: "slr",    label: "ice discharge" },
+      { from: "wais",  to: "amoc2",  label: "freshwater pulse" },
+      { from: "amoc2", to: "sahel2", label: "ITCZ southward" },
+      { from: "amoc2", to: "boreal", label: "continental warming" },
+      { from: "slr",   to: "amoc2",  label: "coast erosion flux" },
+    ],
+  },
+};
         label: "Amazon Tipping",
         region: "South America",
         icon: "🌿",
