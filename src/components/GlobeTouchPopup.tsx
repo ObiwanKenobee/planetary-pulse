@@ -1,5 +1,4 @@
 import { useRef, useCallback } from "react";
-import { useThree } from "@react-three/fiber";
 import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
