@@ -114,42 +114,32 @@ interface RayProps {
 }
 
 export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
-  const { camera, gl } = useThree();
-  const raycaster = useRef(new THREE.Raycaster());
+  const { gl } = useThree();
   const sphereRef = useRef<THREE.Mesh>(null);
 
-  // Invisible sphere for raycasting
-  const handlePointerDown = useCallback((e: THREE.Event) => {
-    const event = e as unknown as PointerEvent;
+  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
     const rect = gl.domElement.getBoundingClientRect();
-    const clientX = "touches" in event
-      ? (event as unknown as TouchEvent).touches[0].clientX
-      : (event as PointerEvent).clientX;
-    const clientY = "touches" in event
-      ? (event as unknown as TouchEvent).touches[0].clientY
-      : (event as PointerEvent).clientY;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
 
-    const ndc = new THREE.Vector2(
-      ((clientX - rect.left) / rect.width)  *  2 - 1,
-      ((clientY - rect.top)  / rect.height) * -2 + 1
-    );
+    // The intersection point is already available on the ThreeEvent
+    const pt = e.point.clone().normalize();
+    const region = nearestRegion(pt);
+    onHit(region, rect.left + (clientX - rect.left), rect.top + (clientY - rect.top));
+    // Use native screen coords for popup positioning
+    onHit(region, clientX, clientY);
+  }, [gl, onHit]);
 
-    raycaster.current.setFromCamera(ndc, camera);
-    if (!sphereRef.current) return;
-    const hits = raycaster.current.intersectObject(sphereRef.current);
-    if (hits.length > 0) {
-      const pt = hits[0].point.normalize();
-      const region = nearestRegion(pt);
-      onHit(region, clientX, clientY);
-    } else {
-      onMiss();
-    }
-  }, [camera, gl, onHit, onMiss]);
+  const handlePointerMissed = useCallback(() => {
+    onMiss();
+  }, [onMiss]);
 
   return (
     <mesh
       ref={sphereRef}
-      onPointerDown={handlePointerDown as unknown as (e: React.PointerEvent) => void}
+      onPointerDown={handlePointerDown}
+      onPointerMissed={handlePointerMissed}
     >
       <sphereGeometry args={[1.05, 32, 32]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
