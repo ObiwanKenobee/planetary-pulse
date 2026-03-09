@@ -376,7 +376,12 @@ export default function PlanetaryGlobe({
   return (
     <div ref={containerRef} className="relative w-full h-full">
       <div className="absolute inset-0 bg-globe-glow" />
-      <Canvas camera={{ position: [0, 0, 3], fov: 45 }} gl={{ antialias: true, alpha: true }} style={{ background: "transparent" }}>
+      <Canvas
+        camera={{ position: [0, 0, 3], fov: 45 }}
+        gl={{ antialias: true, alpha: true }}
+        style={{ background: "transparent" }}
+        onPointerMissed={handleGlobeMiss}
+      >
         <ambientLight intensity={0.15} />
         <directionalLight position={[5, 3, 5]}   intensity={1.2} color="#b0e8ff" />
         <directionalLight position={[-5, -3, -2]} intensity={0.3} color="#001a2e" />
@@ -384,7 +389,7 @@ export default function PlanetaryGlobe({
         <EarthGlobe activeLayer={activeLayer} yearOffset={yearOffset} focusLat={focusLat} focusLon={focusLon} />
         <OrbitalRings />
         <CameraController focusLat={focusLat} focusLon={focusLon} />
-        <GlobeTouchRaycaster onHit={handleGlobeHit} onMiss={handleGlobeMiss} />
+        <GlobeTouchRaycaster onHit={handleGlobeHit} />
       </Canvas>
 
       <div className="absolute top-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">LAT 00°00′N · LON 000°00′E</div>

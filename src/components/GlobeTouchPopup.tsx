@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useCallback } from "react";
 import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
@@ -112,9 +112,7 @@ interface RayProps {
   onMiss: () => void;
 }
 
-export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
-  const sphereRef = useRef<THREE.Mesh>(null);
-
+export function GlobeTouchRaycaster({ onHit }: Pick<RayProps, "onHit">) {
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     const clientX = e.clientX;
@@ -124,18 +122,10 @@ export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
     onHit(region, clientX, clientY);
   }, [onHit]);
 
-  const handlePointerMissed = useCallback(() => {
-    onMiss();
-  }, [onMiss]);
-
   return (
-    <mesh
-      ref={sphereRef}
-      onPointerDown={handlePointerDown}
-      onPointerMissed={handlePointerMissed}
-    >
+    <mesh onPointerDown={handlePointerDown}>
       <sphereGeometry args={[1.05, 32, 32]} />
-      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
     </mesh>
   );
 }

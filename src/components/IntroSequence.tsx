@@ -108,6 +108,13 @@ export default function IntroSequence({ onComplete }: IntroSequenceProps) {
   const [lineIndex, setLineIndex] = useState(0);
   const [shownLines, setShownLines] = useState<string[]>([]);
   const [fadeOut, setFadeOut] = useState(false);
+  const timersRef = useRef<number[]>([]);
+
+  const skip = () => {
+    timersRef.current.forEach(clearTimeout);
+    setFadeOut(true);
+    window.setTimeout(() => { setVisible(false); onComplete(); }, 350);
+  };
 
   // Advance status lines on a schedule
   useEffect(() => {
@@ -126,6 +133,7 @@ export default function IntroSequence({ onComplete }: IntroSequenceProps) {
     // Trigger fade-out at 3.6s → call onComplete at 4.4s
     const fadeTimer = window.setTimeout(() => setFadeOut(true), 3600);
     const doneTimer = window.setTimeout(() => { setVisible(false); onComplete(); }, 4400);
+    timersRef.current = [...timers, fadeTimer, doneTimer];
 
     return () => {
       timers.forEach(clearTimeout);
@@ -149,12 +157,21 @@ export default function IntroSequence({ onComplete }: IntroSequenceProps) {
           animate={{ opacity: fadeOut ? 0 : 1 }}
           transition={{ duration: fadeOut ? 0.8 : 0 }}
         >
+          {/* Skip button */}
+          <button
+            onClick={skip}
+            className="absolute top-4 right-5 z-20 font-data text-[8px] tracking-widest text-muted-foreground/40 hover:text-muted-foreground/80 transition-colors border border-border/20 hover:border-border/40 rounded-sm px-3 py-1.5 pointer-events-auto"
+          >
+            SKIP →
+          </button>
+
           {/* Deep-space 3D globe */}
           <div className="absolute inset-0">
             <Canvas
               camera={{ position: [0, 0, 8], fov: 45 }}
               gl={{ antialias: true, alpha: false }}
               style={{ background: "hsl(220 28% 3%)" }}
+
             >
               <ambientLight intensity={0.06} />
               <directionalLight position={[6, 4, 5]} intensity={1.3} color="#c0e8ff" />
