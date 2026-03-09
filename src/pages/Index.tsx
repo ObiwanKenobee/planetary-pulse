@@ -352,6 +352,9 @@ export default function Index() {
 
       {/* Overview Effect — fullscreen mode */}
       <OverviewEffect active={overviewActive} onClose={() => setOverviewActive(false)} />
+
+      {/* Intro Sequence — cinematic on first load */}
+      {!introComplete && <IntroSequence onComplete={() => setIntroComplete(true)} />}
     </div>
   );
 }
