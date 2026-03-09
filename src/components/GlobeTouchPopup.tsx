@@ -112,7 +112,7 @@ interface RayProps {
   onMiss: () => void;
 }
 
-export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
+export function GlobeTouchRaycaster({ onHit }: Pick<RayProps, "onHit">) {
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     const clientX = e.clientX;
