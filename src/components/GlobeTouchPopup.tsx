@@ -114,20 +114,16 @@ interface RayProps {
 }
 
 export function GlobeTouchRaycaster({ onHit, onMiss }: RayProps) {
-  const { gl } = useThree();
   const sphereRef = useRef<THREE.Mesh>(null);
 
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    const rect = gl.domElement.getBoundingClientRect();
     const clientX = e.clientX;
     const clientY = e.clientY;
-
-    // The intersection point is already available on the ThreeEvent
     const pt = e.point.clone().normalize();
     const region = nearestRegion(pt);
     onHit(region, clientX, clientY);
-  }, [gl, onHit]);
+  }, [onHit]);
 
   const handlePointerMissed = useCallback(() => {
     onMiss();
