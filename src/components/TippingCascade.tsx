@@ -199,6 +199,22 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {/* Chain selector */}
+                <div className="flex gap-1 border border-border/30 rounded-sm p-0.5 bg-muted/20">
+                  {Object.entries(CASCADE_CHAINS).map(([key, c]) => (
+                    <button
+                      key={key}
+                      onClick={() => { setChainKey(key); }}
+                      className={`font-data text-[8px] tracking-widest rounded-sm px-2.5 py-1 transition-all ${
+                        chainKey === key
+                          ? "bg-critical/20 text-critical border border-critical/30"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {key === "amazon" ? "🌿 AMAZON" : "🧊 WAIS"}
+                    </button>
+                  ))}
+                </div>
                 {triggered && (
                   <button
                     onClick={reset}
@@ -213,7 +229,7 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
                     className="flex items-center gap-1.5 font-data text-[9px] tracking-widest border border-critical/30 text-critical bg-critical/8 rounded-sm px-3 py-1.5 hover:bg-critical/15 transition-colors animate-pulse"
                   >
                     <Zap className="w-3 h-3" />
-                    TRIGGER AMAZON TIPPING
+                    TRIGGER {chainKey === "amazon" ? "AMAZON" : "WAIS"} TIPPING
                   </button>
                 )}
                 <button onClick={onClose} className="p-1.5 rounded-sm hover:bg-muted/40 transition-colors">
