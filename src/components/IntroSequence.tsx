@@ -111,10 +111,14 @@ export default function IntroSequence({ onComplete }: IntroSequenceProps) {
 
   // Advance status lines on a schedule
   useEffect(() => {
+    setShownLines([]);
     const delays = [400, 1000, 1600, 2200, 2700];
     const timers = delays.map((d, i) =>
       window.setTimeout(() => {
-        setShownLines(prev => [...prev, STATUS_LINES[i]]);
+        setShownLines(prev => {
+          if (prev.includes(STATUS_LINES[i])) return prev;
+          return [...prev, STATUS_LINES[i]];
+        });
         setLineIndex(i);
       }, d)
     );
