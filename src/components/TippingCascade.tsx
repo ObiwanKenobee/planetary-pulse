@@ -21,86 +21,58 @@ interface CascadeEdge {
   label: string;
 }
 
-const CASCADE_CHAINS: Record<string, { nodes: CascadeNode[]; edges: CascadeEdge[]; title: string; description: string }> = {
+const CASCADE_CHAINS: Record<string, { nodes: CascadeNode[]; edges: CascadeEdge[]; title: string; description: string; impact: { label: string; val: string }[] }> = {
   amazon: {
     title: "Amazon Savannification Cascade",
     description:
       "The Amazon produces ~20% of its own rainfall through transpiration. Deforestation beyond a ~20–25% threshold could trigger a self-reinforcing dieback, drying the continent, disrupting monsoons, and emitting ~90 Gt CO₂ — igniting a global cascade.",
+    impact: [
+      { label: "CO₂ Released",   val: "+90 Gt" },
+      { label: "Temp Increase",  val: "+1.5°C" },
+      { label: "Systems Tipped", val: "6" },
+      { label: "Recovery ETA",   val: ">500 yr" },
+    ],
     nodes: [
-      {
-        id: "amz",
-        label: "Amazon Tipping",
-        region: "South America",
-        icon: "🌿",
-        probability: 100,
-        delay: "TRIGGER",
-        mechanic: "Deforestation + drought reduces moisture recycling. Forest cannot recover.",
-        color: "text-critical",
-        bgColor: "bg-critical",
-      },
-      {
-        id: "sahel",
-        label: "Sahel Drying",
-        region: "West Africa",
-        icon: "🌵",
-        probability: 74,
-        delay: "~5–15 yr",
-        mechanic: "Amazon collapse shifts ITCZ south, reducing West African monsoon rainfall by 20–30%.",
-        color: "text-warning",
-        bgColor: "bg-warning",
-      },
-      {
-        id: "amoc",
-        label: "AMOC Slowdown",
-        region: "North Atlantic",
-        icon: "🌊",
-        probability: 68,
-        delay: "~10–30 yr",
-        mechanic: "+90 Gt CO₂ emissions raise global temps, accelerating Greenland melt, freshening Atlantic and weakening AMOC thermohaline circulation.",
-        color: "text-warning",
-        bgColor: "bg-warning",
-      },
-      {
-        id: "arctic",
-        label: "Arctic Sea Ice Loss",
-        region: "Polar",
-        icon: "🧊",
-        probability: 82,
-        delay: "~8–20 yr",
-        mechanic: "CO₂ pulse + AMOC reduction amplifies Arctic warming 3–4× global mean. Summer sea ice collapses, triggering albedo feedback.",
-        color: "text-critical",
-        bgColor: "bg-critical",
-      },
-      {
-        id: "permafrost",
-        label: "Permafrost Thaw",
-        region: "Siberia / Canada",
-        icon: "🏔️",
-        probability: 61,
-        delay: "~15–40 yr",
-        mechanic: "Arctic warming unlocks 1,500 Gt of frozen carbon. CH₄ and CO₂ release accelerates warming by +0.3–0.5°C.",
-        color: "text-warning",
-        bgColor: "bg-warning",
-      },
-      {
-        id: "gbr",
-        label: "Coral Bleaching",
-        region: "Indo-Pacific",
-        icon: "🪸",
-        probability: 55,
-        delay: "~20–50 yr",
-        mechanic: "Ocean warming (+0.5°C above 2024) + acidification from CO₂ pulse eliminates remaining heat-tolerant coral colonies.",
-        color: "text-nominal",
-        bgColor: "bg-nominal",
-      },
+      { id: "amz", label: "Amazon Tipping", region: "South America", icon: "🌿", probability: 100, delay: "TRIGGER", mechanic: "Deforestation + drought reduces moisture recycling. Forest cannot recover.", color: "text-critical", bgColor: "bg-critical" },
+      { id: "sahel", label: "Sahel Drying", region: "West Africa", icon: "🌵", probability: 74, delay: "~5–15 yr", mechanic: "Amazon collapse shifts ITCZ south, reducing West African monsoon rainfall by 20–30%.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "amoc", label: "AMOC Slowdown", region: "North Atlantic", icon: "🌊", probability: 68, delay: "~10–30 yr", mechanic: "+90 Gt CO₂ emissions raise global temps, accelerating Greenland melt, freshening Atlantic and weakening AMOC thermohaline circulation.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "arctic", label: "Arctic Sea Ice Loss", region: "Polar", icon: "🧊", probability: 82, delay: "~8–20 yr", mechanic: "CO₂ pulse + AMOC reduction amplifies Arctic warming 3–4× global mean. Summer sea ice collapses, triggering albedo feedback.", color: "text-critical", bgColor: "bg-critical" },
+      { id: "permafrost", label: "Permafrost Thaw", region: "Siberia / Canada", icon: "🏔️", probability: 61, delay: "~15–40 yr", mechanic: "Arctic warming unlocks 1,500 Gt of frozen carbon. CH₄ and CO₂ release accelerates warming by +0.3–0.5°C.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "gbr", label: "Coral Bleaching", region: "Indo-Pacific", icon: "🪸", probability: 55, delay: "~20–50 yr", mechanic: "Ocean warming (+0.5°C above 2024) + acidification from CO₂ pulse eliminates remaining heat-tolerant coral colonies.", color: "text-nominal", bgColor: "bg-nominal" },
     ],
     edges: [
-      { from: "amz",    to: "sahel",      label: "ITCZ shift" },
-      { from: "amz",    to: "amoc",       label: "+90 Gt CO₂" },
-      { from: "amoc",   to: "arctic",     label: "heat redistribution" },
+      { from: "amz", to: "sahel", label: "ITCZ shift" },
+      { from: "amz", to: "amoc", label: "+90 Gt CO₂" },
+      { from: "amoc", to: "arctic", label: "heat redistribution" },
       { from: "arctic", to: "permafrost", label: "albedo feedback" },
-      { from: "permafrost", to: "gbr",    label: "+CH₄ / +CO₂" },
-      { from: "amz",    to: "gbr",        label: "ocean acidification" },
+      { from: "permafrost", to: "gbr", label: "+CH₄ / +CO₂" },
+      { from: "amz", to: "gbr", label: "ocean acidification" },
+    ],
+  },
+
+  wais: {
+    title: "West Antarctic Ice Sheet Collapse",
+    description:
+      "The West Antarctic Ice Sheet sits on bedrock below sea level — making it vulnerable to marine ice sheet instability. Warm ocean water eroding the Thwaites glacier base could trigger irreversible collapse, raising sea levels by 3–5m and destabilizing global circulation systems.",
+    impact: [
+      { label: "Sea Level Rise",  val: "+3–5 m" },
+      { label: "Temp Increase",   val: "+0.5°C" },
+      { label: "Systems Tipped",  val: "5" },
+      { label: "Recovery ETA",    val: ">10,000 yr" },
+    ],
+    nodes: [
+      { id: "wais", label: "WAIS Collapse", region: "West Antarctica", icon: "🧊", probability: 100, delay: "TRIGGER", mechanic: "Warm Circumpolar Deep Water intrudes beneath Thwaites glacier, triggering marine ice sheet instability and irreversible retreat.", color: "text-critical", bgColor: "bg-critical" },
+      { id: "slr", label: "Sea Level Rise", region: "Global Coastlines", icon: "🌊", probability: 95, delay: "~100–500 yr", mechanic: "WAIS collapse contributes 3–5m of sea level rise. Coastal megacities, deltas, and island nations face inundation. ~1 billion people displaced.", color: "text-critical", bgColor: "bg-critical" },
+      { id: "amoc2", label: "AMOC Disruption", region: "North Atlantic", icon: "🌀", probability: 72, delay: "~50–200 yr", mechanic: "Massive freshwater influx from WAIS melt freshens the North Atlantic, weakening thermohaline density gradients and slowing AMOC by 30–50%.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "sahel2", label: "Sahel Monsoon Failure", region: "West Africa", icon: "🌵", probability: 58, delay: "~100–300 yr", mechanic: "AMOC slowdown shifts the ITCZ southward, weakening the West African monsoon by 15–25%, causing widespread Sahel desertification.", color: "text-warning", bgColor: "bg-warning" },
+      { id: "boreal", label: "Boreal Die-back", region: "Canada / Siberia", icon: "🌲", probability: 48, delay: "~150–400 yr", mechanic: "AMOC collapse intensifies continental warming across the boreal belt, driving drought, beetle outbreaks, and megafires — converting 1.5 Bha of forest to grassland.", color: "text-nominal", bgColor: "bg-nominal" },
+    ],
+    edges: [
+      { from: "wais",  to: "slr",    label: "ice discharge" },
+      { from: "wais",  to: "amoc2",  label: "freshwater pulse" },
+      { from: "amoc2", to: "sahel2", label: "ITCZ southward" },
+      { from: "amoc2", to: "boreal", label: "continental warming" },
+      { from: "slr",   to: "amoc2",  label: "coast erosion flux" },
     ],
   },
 };
@@ -130,13 +102,14 @@ interface TippingCascadeProps {
 
 export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
   const [triggered, setTriggered] = useState(false);
-  const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set(["amz"]));
+  const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set());
   const [activeEdges, setActiveEdges] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [chainKey] = useState<keyof typeof CASCADE_CHAINS>("amazon");
+  const [chainKey, setChainKey] = useState<keyof typeof CASCADE_CHAINS>("amazon");
   const timerRefs = useRef<number[]>([]);
 
   const chain = CASCADE_CHAINS[chainKey];
+  const firstNodeId = chain.nodes[0].id;
 
   // Key listener
   useEffect(() => {
@@ -145,27 +118,23 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  // Reset on open/close
+  // Reset on open/close or chain change
   useEffect(() => {
-    if (!open) {
-      timerRefs.current.forEach(clearTimeout);
-      setTriggered(false);
-      setActiveNodes(new Set(["amz"]));
-      setActiveEdges(new Set());
-      setSelectedNode(null);
-    }
-  }, [open]);
+    timerRefs.current.forEach(clearTimeout);
+    setTriggered(false);
+    setActiveNodes(new Set([firstNodeId]));
+    setActiveEdges(new Set());
+    setSelectedNode(null);
+  }, [open, chainKey, firstNodeId]);
 
   const runCascade = () => {
     setTriggered(true);
-    // Staggered activation: each node/edge gets a delay
     const delays = [0, 900, 1600, 2100, 2800, 3600, 4400];
     chain.nodes.forEach((node, idx) => {
-      if (idx === 0) return; // amz already active
+      if (idx === 0) return;
       const t = window.setTimeout(() => {
         setActiveNodes(prev => new Set([...prev, node.id]));
-        // activate incoming edges
-        chain.edges.forEach((edge, ei) => {
+        chain.edges.forEach(edge => {
           if (edge.to === node.id) {
             const et = window.setTimeout(() => {
               setActiveEdges(prev => new Set([...prev, `${edge.from}-${edge.to}`]));
@@ -181,7 +150,7 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
   const reset = () => {
     timerRefs.current.forEach(clearTimeout);
     setTriggered(false);
-    setActiveNodes(new Set(["amz"]));
+    setActiveNodes(new Set([firstNodeId]));
     setActiveEdges(new Set());
     setSelectedNode(null);
   };
@@ -230,6 +199,22 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {/* Chain selector */}
+                <div className="flex gap-1 border border-border/30 rounded-sm p-0.5 bg-muted/20">
+                  {Object.entries(CASCADE_CHAINS).map(([key, c]) => (
+                    <button
+                      key={key}
+                      onClick={() => { setChainKey(key); }}
+                      className={`font-data text-[8px] tracking-widest rounded-sm px-2.5 py-1 transition-all ${
+                        chainKey === key
+                          ? "bg-critical/20 text-critical border border-critical/30"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {key === "amazon" ? "🌿 AMAZON" : "🧊 WAIS"}
+                    </button>
+                  ))}
+                </div>
                 {triggered && (
                   <button
                     onClick={reset}
@@ -244,7 +229,7 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
                     className="flex items-center gap-1.5 font-data text-[9px] tracking-widest border border-critical/30 text-critical bg-critical/8 rounded-sm px-3 py-1.5 hover:bg-critical/15 transition-colors animate-pulse"
                   >
                     <Zap className="w-3 h-3" />
-                    TRIGGER AMAZON TIPPING
+                    TRIGGER {chainKey === "amazon" ? "AMAZON" : "WAIS"} TIPPING
                   </button>
                 )}
                 <button onClick={onClose} className="p-1.5 rounded-sm hover:bg-muted/40 transition-colors">
@@ -443,18 +428,15 @@ export default function TippingCascade({ open, onClose }: TippingCascadeProps) {
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-auto bg-critical/8 border border-critical/20 rounded-sm p-3"
                   >
-                    <div className="font-data text-[8px] text-critical tracking-widest mb-2">PROJECTED IMPACT</div>
-                    {[
-                      { label: "CO₂ Released",   val: "+90 Gt" },
-                      { label: "Temp Increase",  val: "+1.5°C" },
-                      { label: "Systems Tipped", val: `${activeNodes.size}` },
-                      { label: "Recovery ETA",   val: ">500 yr" },
-                    ].map(m => (
-                      <div key={m.label} className="flex justify-between py-0.5 border-b border-border/10 last:border-0">
-                        <span className="font-data text-[8px] text-muted-foreground/60">{m.label}</span>
-                        <span className="font-data text-[9px] text-critical font-semibold">{m.val}</span>
-                      </div>
-                    ))}
+                     <div className="font-data text-[8px] text-critical tracking-widest mb-2">PROJECTED IMPACT</div>
+                     {chain.impact.map(m => (
+                       <div key={m.label} className="flex justify-between py-0.5 border-b border-border/10 last:border-0">
+                         <span className="font-data text-[8px] text-muted-foreground/60">{m.label}</span>
+                         <span className="font-data text-[9px] text-critical font-semibold">
+                           {m.label === "Systems Tipped" ? `${activeNodes.size}` : m.val}
+                         </span>
+                       </div>
+                     ))}
                   </motion.div>
                 )}
               </div>

@@ -1,7 +1,9 @@
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo, useEffect, useState, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
+import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
+import { GlobeTouchRaycaster, GlobeRegionPopup } from "./GlobeTouchPopup";
 
 /* ---- Atmosphere halo ---- */
 function Atmosphere() {
@@ -356,8 +358,23 @@ export default function PlanetaryGlobe({
   focusLon = null,
   focusLabel = null,
 }: PlanetaryGlobeProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [touchRegion, setTouchRegion] = useState<import("./GlobeTouchPopup").RegionData | null>(null);
+  const [popupX, setPopupX] = useState(0);
+  const [popupY, setPopupY] = useState(0);
+
+  const handleGlobeHit = useCallback((region: import("./GlobeTouchPopup").RegionData, sx: number, sy: number) => {
+    setTouchRegion(region);
+    setPopupX(sx);
+    setPopupY(sy);
+  }, []);
+
+  const handleGlobeMiss = useCallback(() => {
+    setTouchRegion(null);
+  }, []);
+
   return (
-    <div className="relative w-full h-full">
+    <div ref={containerRef} className="relative w-full h-full">
       <div className="absolute inset-0 bg-globe-glow" />
       <Canvas camera={{ position: [0, 0, 3], fov: 45 }} gl={{ antialias: true, alpha: true }} style={{ background: "transparent" }}>
         <ambientLight intensity={0.15} />
@@ -367,12 +384,18 @@ export default function PlanetaryGlobe({
         <EarthGlobe activeLayer={activeLayer} yearOffset={yearOffset} focusLat={focusLat} focusLon={focusLon} />
         <OrbitalRings />
         <CameraController focusLat={focusLat} focusLon={focusLon} />
+        <GlobeTouchRaycaster onHit={handleGlobeHit} onMiss={handleGlobeMiss} />
       </Canvas>
 
       <div className="absolute top-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">LAT 00°00′N · LON 000°00′E</div>
       <div className="absolute top-3 right-3 font-data text-[10px] text-primary/40 tracking-widest">ALT 36,000 KM</div>
       <div className="absolute bottom-3 left-3 font-data text-[10px] text-primary/40 tracking-widest">PROJ: ORTHOGRAPHIC</div>
       <div className="absolute bottom-3 right-3 font-data text-[10px] text-primary/40 tracking-widest animate-pulse-dot">● LIVE FEED</div>
+
+      {/* Tap hint */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 font-data text-[8px] text-primary/20 tracking-widest pointer-events-none hidden md:block">
+        CLICK GLOBE TO INSPECT REGION
+      </div>
 
       {/* Region focus badge */}
       {focusLabel && (
@@ -416,6 +439,15 @@ export default function PlanetaryGlobe({
           ))}
         </div>
       )}
+
+      {/* Touch/Click region popup */}
+      <GlobeRegionPopup
+        region={touchRegion}
+        screenX={popupX}
+        screenY={popupY}
+        onClose={() => setTouchRegion(null)}
+        containerRef={containerRef as React.RefObject<HTMLDivElement>}
+      />
     </div>
   );
 }

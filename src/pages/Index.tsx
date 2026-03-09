@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useState, Suspense, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Expand, GitBranch, Menu } from "lucide-react";
 import PlanetaryGlobe from "@/components/PlanetaryGlobe";
@@ -16,6 +16,7 @@ import CapitalFlowFeed from "@/components/CapitalFlowFeed";
 import OverviewEffect from "@/components/OverviewEffect";
 import PlanetaryReport from "@/components/PlanetaryReport";
 import TippingCascade from "@/components/TippingCascade";
+import IntroSequence from "@/components/IntroSequence";
 import { MobileOverlayDrawer } from "@/components/MobileDrawer";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,6 +25,7 @@ const START_YEAR = 1980;
 const END_YEAR   = 2024;
 
 export default function Index() {
+  const [introComplete, setIntroComplete] = useState(false);
   const [activeLayer, setActiveLayer]   = useState("none");
   const [activeAlert, setActiveAlert]   = useState<string | null>(null);
   const [overviewActive, setOverviewActive] = useState(false);
@@ -350,6 +352,9 @@ export default function Index() {
 
       {/* Overview Effect — fullscreen mode */}
       <OverviewEffect active={overviewActive} onClose={() => setOverviewActive(false)} />
+
+      {/* Intro Sequence — cinematic on first load */}
+      {!introComplete && <IntroSequence onComplete={() => setIntroComplete(true)} />}
     </div>
   );
 }
