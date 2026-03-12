@@ -1,4 +1,4 @@
-import { useState, Suspense, useCallback } from "react";
+import { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Expand, GitBranch, Menu } from "lucide-react";
 import PlanetaryGlobe from "@/components/PlanetaryGlobe";
@@ -17,6 +17,8 @@ import OverviewEffect from "@/components/OverviewEffect";
 import PlanetaryReport from "@/components/PlanetaryReport";
 import TippingCascade from "@/components/TippingCascade";
 import IntroSequence from "@/components/IntroSequence";
+import NewsTicker from "@/components/NewsTicker";
+import PlanetaryBudget from "@/components/PlanetaryBudget";
 import { MobileOverlayDrawer } from "@/components/MobileDrawer";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 import { useIsMobile } from "@/hooks/use-mobile";
