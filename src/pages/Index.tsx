@@ -228,7 +228,6 @@ export default function Index() {
         {/* ── NEWS TICKER ── bottom of desktop layout */}
         <NewsTicker />
       </div>
-      </div>
 
       {/* ── MOBILE LAYOUT ── */}
       <div className="flex flex-col h-screen max-h-screen md:hidden">
