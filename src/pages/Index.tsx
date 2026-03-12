@@ -307,6 +307,9 @@ export default function Index() {
             </button>
           ))}
         </div>
+
+        {/* Mobile news ticker */}
+        <NewsTicker />
       </div>
 
       {/* Mobile overlay drawers */}
