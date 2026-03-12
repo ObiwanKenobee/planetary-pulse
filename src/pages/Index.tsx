@@ -343,8 +343,11 @@ export default function Index() {
             alerts={ALL_ALERTS}
             onAlertClick={(id) => { setActiveAlert(id); setMobilePanel(null); }}
           />
-          <div style={{ height: "260px" }}>
+          <div style={{ height: "220px" }}>
             <CapitalFlowFeed onZoomToRegion={(lat, lon, label) => { handleZoomToRegion(lat, lon, label); setMobilePanel(null); }} />
+          </div>
+          <div style={{ height: "500px" }}>
+            <PlanetaryBudget />
           </div>
         </div>
       </MobileOverlayDrawer>
