@@ -193,33 +193,41 @@ export default function Index() {
             </div>
           </div>
 
-          {/* RIGHT — Vitals + Radar + Alerts + Capital Flow */}
+          {/* RIGHT — Vitals + Radar + Alerts + Capital Flow + Budget */}
           <motion.aside
             initial={{ opacity: 0, x: 18 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.45, delay: 0.2 }}
             className="flex flex-col gap-3 min-h-0 overflow-hidden"
           >
-            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "160px" }}>
+            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "130px" }}>
               <VitalsPanel vitals={realtimeData.vitals} />
             </div>
-            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "200px" }}>
+            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "175px" }}>
               <EcosystemRadar />
             </div>
-            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "180px" }}>
+            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "160px" }}>
               <TippingPointAlerts alerts={ALL_ALERTS} onAlertClick={setActiveAlert} />
             </div>
-            {/* Regenerative Capital Flow Feed */}
+            {/* Capital Flow Feed */}
+            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "140px" }}>
+              <CapitalFlowFeed onZoomToRegion={handleZoomToRegion} />
+            </div>
+            {/* Planetary Budget */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
               className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden"
             >
-              <CapitalFlowFeed onZoomToRegion={handleZoomToRegion} />
+              <PlanetaryBudget />
             </motion.div>
           </motion.aside>
         </div>
+
+        {/* ── NEWS TICKER ── bottom of desktop layout */}
+        <NewsTicker />
+      </div>
       </div>
 
       {/* ── MOBILE LAYOUT ── */}
