@@ -304,8 +304,8 @@ export default function PlanetaryBudget({ onZoomToRegion, deployTarget, onDeploy
                     {gap > 0 && <AlertCircle className="w-2.5 h-2.5 text-critical/40 shrink-0" />}
                   </div>
                   {/* Deploy button */}
-                  <button
-                    onClick={() => setDeployTarget(b)}
+                   <button
+                    onClick={() => setEffectiveTarget(b)}
                     className="ml-2 shrink-0 font-data text-[7px] tracking-widest border border-primary/25 text-primary/70 rounded-sm px-1.5 py-0.5 hover:bg-primary/10 hover:border-primary/50 hover:text-primary transition-all"
                   >
                     DEPLOY
@@ -325,16 +325,18 @@ export default function PlanetaryBudget({ onZoomToRegion, deployTarget, onDeploy
         </div>
       </div>
 
-      {/* Deploy Modal */}
-      <AnimatePresence>
-        {deployTarget && (
-          <DeployModal
-            biome={deployTarget}
-            onClose={() => setDeployTarget(null)}
-            onDeploy={handleDeploy}
-          />
-        )}
-      </AnimatePresence>
+      {/* Internal fallback modal (only used when not lifted to parent) */}
+      {onDeployRequest === undefined && (
+        <AnimatePresence>
+          {effectiveTarget && (
+            <DeployModal
+              biome={effectiveTarget}
+              onClose={() => setInternalTarget(null)}
+              onDeploy={handleDeploy}
+            />
+          )}
+        </AnimatePresence>
+      )}
     </>
   );
 }
