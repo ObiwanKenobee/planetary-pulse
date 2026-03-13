@@ -44,7 +44,7 @@ function formatM(val: number): string {
   return val === 0 ? "—" : `$${val}M`;
 }
 
-interface DeployModalProps {
+export interface DeployModalProps {
   biome: BiomeBudget;
   onClose: () => void;
   onDeploy: (id: string, amount: number) => void;
