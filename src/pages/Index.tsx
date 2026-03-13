@@ -471,6 +471,17 @@ export default function Index() {
       {/* Overview Effect */}
       <OverviewEffect active={overviewActive} onClose={() => setOverviewActive(false)} />
 
+      {/* Deploy Capital Modal — lifted to root to escape overflow-hidden */}
+      <AnimatePresence>
+        {deployTarget && (
+          <DeployModal
+            biome={deployTarget}
+            onClose={() => setDeployTarget(null)}
+            onDeploy={handleBudgetDeploy}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Intro Sequence */}
       {!introComplete && <IntroSequence onComplete={() => setIntroComplete(true)} />}
     </div>
