@@ -17,7 +17,7 @@ import OverviewEffect from "@/components/OverviewEffect";
 import TippingCascade from "@/components/TippingCascade";
 import IntroSequence from "@/components/IntroSequence";
 import NewsTicker from "@/components/NewsTicker";
-import PlanetaryBudget, { DeployModal } from "@/components/PlanetaryBudget";
+import PlanetaryBudget, { DeployModal, BiomeBudget } from "@/components/PlanetaryBudget";
 import PlanetaryThreatReport from "@/components/PlanetaryThreatReport";
 import SatelliteFeed from "@/components/SatelliteFeed";
 import { MobileOverlayDrawer } from "@/components/MobileDrawer";
