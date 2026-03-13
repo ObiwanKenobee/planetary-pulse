@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DollarSign, TrendingUp, AlertCircle, X, Zap, CheckCircle2 } from "lucide-react";
 
-interface BiomeBudget {
+export interface BiomeBudget {
   id: string;
   name: string;
   biome: string;
