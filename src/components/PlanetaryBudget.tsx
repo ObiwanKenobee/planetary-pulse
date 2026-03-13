@@ -50,7 +50,7 @@ export interface DeployModalProps {
   onDeploy: (id: string, amount: number) => void;
 }
 
-function DeployModal({ biome, onClose, onDeploy }: DeployModalProps) {
+export function DeployModal({ biome, onClose, onDeploy }: DeployModalProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [deploying, setDeploying] = useState(false);
   const [done, setDone] = useState(false);
