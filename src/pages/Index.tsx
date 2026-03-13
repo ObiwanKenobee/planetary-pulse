@@ -38,6 +38,13 @@ export default function Index() {
   const [globeYear, setGlobeYear]       = useState(END_YEAR);
   const [mobilePanel, setMobilePanel]   = useState<"layers" | "vitals" | "alerts" | null>(null);
   const [focusRegion, setFocusRegion]   = useState<{ lat: number; lon: number; label: string } | null>(null);
+  const [deployTarget, setDeployTarget] = useState<BiomeBudget | null>(null);
+  const [budgetDeploys, setBudgetDeploys] = useState<Record<string, number>>({});
+
+  const handleBudgetDeploy = (id: string, amount: number) => {
+    setBudgetDeploys(prev => ({ ...prev, [id]: (prev[id] ?? 0) + amount }));
+    setDeployTarget(null);
+  };
 
   const realtimeData = useRealtimeData();
   const { simState, startSimulation, stopSimulation } = useSimulateMode();
