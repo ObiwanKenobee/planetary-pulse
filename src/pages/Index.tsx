@@ -297,9 +297,22 @@ export default function Index() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.45 }}
+              className="panel-glass rounded-sm p-3 shadow-panel shrink-0"
+              style={{ height: "260px" }}
+            >
+              <PlanetaryBudget
+                onZoomToRegion={handleZoomToRegion}
+                onDeployRequest={setDeployTarget}
+              />
+            </motion.div>
+            {/* Satellite Feed */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.55 }}
               className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden"
             >
-              <PlanetaryBudget onZoomToRegion={handleZoomToRegion} />
+              <SatelliteFeed simActive={simState.active} />
             </motion.div>
           </motion.aside>
         </div>
