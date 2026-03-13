@@ -17,8 +17,9 @@ import OverviewEffect from "@/components/OverviewEffect";
 import TippingCascade from "@/components/TippingCascade";
 import IntroSequence from "@/components/IntroSequence";
 import NewsTicker from "@/components/NewsTicker";
-import PlanetaryBudget from "@/components/PlanetaryBudget";
+import PlanetaryBudget, { DeployModal, BiomeBudget } from "@/components/PlanetaryBudget";
 import PlanetaryThreatReport from "@/components/PlanetaryThreatReport";
+import SatelliteFeed from "@/components/SatelliteFeed";
 import { MobileOverlayDrawer } from "@/components/MobileDrawer";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 import { useSimulateMode } from "@/hooks/useSimulateMode";
@@ -37,6 +38,13 @@ export default function Index() {
   const [globeYear, setGlobeYear]       = useState(END_YEAR);
   const [mobilePanel, setMobilePanel]   = useState<"layers" | "vitals" | "alerts" | null>(null);
   const [focusRegion, setFocusRegion]   = useState<{ lat: number; lon: number; label: string } | null>(null);
+  const [deployTarget, setDeployTarget] = useState<BiomeBudget | null>(null);
+  const [budgetDeploys, setBudgetDeploys] = useState<Record<string, number>>({});
+
+  const handleBudgetDeploy = (id: string, amount: number) => {
+    setBudgetDeploys(prev => ({ ...prev, [id]: (prev[id] ?? 0) + amount }));
+    setDeployTarget(null);
+  };
 
   const realtimeData = useRealtimeData();
   const { simState, startSimulation, stopSimulation } = useSimulateMode();
@@ -289,9 +297,22 @@ export default function Index() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.45 }}
+              className="panel-glass rounded-sm p-3 shadow-panel shrink-0"
+              style={{ height: "260px" }}
+            >
+              <PlanetaryBudget
+                onZoomToRegion={handleZoomToRegion}
+                onDeployRequest={setDeployTarget}
+              />
+            </motion.div>
+            {/* Satellite Feed */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.55 }}
               className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden"
             >
-              <PlanetaryBudget onZoomToRegion={handleZoomToRegion} />
+              <SatelliteFeed simActive={simState.active} />
             </motion.div>
           </motion.aside>
         </div>
@@ -449,6 +470,17 @@ export default function Index() {
 
       {/* Overview Effect */}
       <OverviewEffect active={overviewActive} onClose={() => setOverviewActive(false)} />
+
+      {/* Deploy Capital Modal — lifted to root to escape overflow-hidden */}
+      <AnimatePresence>
+        {deployTarget && (
+          <DeployModal
+            biome={deployTarget}
+            onClose={() => setDeployTarget(null)}
+            onDeploy={handleBudgetDeploy}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Intro Sequence */}
       {!introComplete && <IntroSequence onComplete={() => setIntroComplete(true)} />}

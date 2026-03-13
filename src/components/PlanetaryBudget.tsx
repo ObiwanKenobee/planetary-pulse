@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DollarSign, TrendingUp, AlertCircle, X, Zap, CheckCircle2 } from "lucide-react";
 
-interface BiomeBudget {
+export interface BiomeBudget {
   id: string;
   name: string;
   biome: string;
@@ -44,13 +44,13 @@ function formatM(val: number): string {
   return val === 0 ? "—" : `$${val}M`;
 }
 
-interface DeployModalProps {
+export interface DeployModalProps {
   biome: BiomeBudget;
   onClose: () => void;
   onDeploy: (id: string, amount: number) => void;
 }
 
-function DeployModal({ biome, onClose, onDeploy }: DeployModalProps) {
+export function DeployModal({ biome, onClose, onDeploy }: DeployModalProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [deploying, setDeploying] = useState(false);
   const [done, setDone] = useState(false);
@@ -174,11 +174,19 @@ function DeployModal({ biome, onClose, onDeploy }: DeployModalProps) {
 
 interface PlanetaryBudgetProps {
   onZoomToRegion?: (lat: number, lon: number, label: string) => void;
+  /** Lift deploy modal to parent so it escapes overflow-hidden containers */
+  deployTarget?: BiomeBudget | null;
+  onDeployRequest?: (biome: BiomeBudget) => void;
 }
 
-export default function PlanetaryBudget({ onZoomToRegion }: PlanetaryBudgetProps) {
+export default function PlanetaryBudget({ onZoomToRegion, deployTarget, onDeployRequest }: PlanetaryBudgetProps) {
   const [budgets, setBudgets] = useState<BiomeBudget[]>(INITIAL_BUDGETS);
-  const [deployTarget, setDeployTarget] = useState<BiomeBudget | null>(null);
+  // fallback internal state if parent doesn't lift
+  const [internalTarget, setInternalTarget] = useState<BiomeBudget | null>(null);
+  const effectiveTarget = deployTarget !== undefined ? deployTarget : internalTarget;
+  const setEffectiveTarget = onDeployRequest !== undefined
+    ? (b: BiomeBudget | null) => { if (b) onDeployRequest(b); else setInternalTarget(null); }
+    : setInternalTarget;
 
   const totalNeeded   = budgets.reduce((s, b) => s + b.needed, 0);
   const totalDeployed = budgets.reduce((s, b) => s + b.deployed, 0);
@@ -296,8 +304,8 @@ export default function PlanetaryBudget({ onZoomToRegion }: PlanetaryBudgetProps
                     {gap > 0 && <AlertCircle className="w-2.5 h-2.5 text-critical/40 shrink-0" />}
                   </div>
                   {/* Deploy button */}
-                  <button
-                    onClick={() => setDeployTarget(b)}
+                   <button
+                    onClick={() => setEffectiveTarget(b)}
                     className="ml-2 shrink-0 font-data text-[7px] tracking-widest border border-primary/25 text-primary/70 rounded-sm px-1.5 py-0.5 hover:bg-primary/10 hover:border-primary/50 hover:text-primary transition-all"
                   >
                     DEPLOY
@@ -317,16 +325,18 @@ export default function PlanetaryBudget({ onZoomToRegion }: PlanetaryBudgetProps
         </div>
       </div>
 
-      {/* Deploy Modal */}
-      <AnimatePresence>
-        {deployTarget && (
-          <DeployModal
-            biome={deployTarget}
-            onClose={() => setDeployTarget(null)}
-            onDeploy={handleDeploy}
-          />
-        )}
-      </AnimatePresence>
+      {/* Internal fallback modal (only used when not lifted to parent) */}
+      {onDeployRequest === undefined && (
+        <AnimatePresence>
+          {effectiveTarget && (
+            <DeployModal
+              biome={effectiveTarget}
+              onClose={() => setInternalTarget(null)}
+              onDeploy={handleDeploy}
+            />
+          )}
+        </AnimatePresence>
+      )}
     </>
   );
 }
