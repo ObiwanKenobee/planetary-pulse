@@ -174,11 +174,19 @@ function DeployModal({ biome, onClose, onDeploy }: DeployModalProps) {
 
 interface PlanetaryBudgetProps {
   onZoomToRegion?: (lat: number, lon: number, label: string) => void;
+  /** Lift deploy modal to parent so it escapes overflow-hidden containers */
+  deployTarget?: BiomeBudget | null;
+  onDeployRequest?: (biome: BiomeBudget) => void;
 }
 
-export default function PlanetaryBudget({ onZoomToRegion }: PlanetaryBudgetProps) {
+export default function PlanetaryBudget({ onZoomToRegion, deployTarget, onDeployRequest }: PlanetaryBudgetProps) {
   const [budgets, setBudgets] = useState<BiomeBudget[]>(INITIAL_BUDGETS);
-  const [deployTarget, setDeployTarget] = useState<BiomeBudget | null>(null);
+  // fallback internal state if parent doesn't lift
+  const [internalTarget, setInternalTarget] = useState<BiomeBudget | null>(null);
+  const effectiveTarget = deployTarget !== undefined ? deployTarget : internalTarget;
+  const setEffectiveTarget = onDeployRequest !== undefined
+    ? (b: BiomeBudget | null) => { if (b) onDeployRequest(b); else setInternalTarget(null); }
+    : setInternalTarget;
 
   const totalNeeded   = budgets.reduce((s, b) => s + b.needed, 0);
   const totalDeployed = budgets.reduce((s, b) => s + b.deployed, 0);
