@@ -288,7 +288,7 @@ export default function Index() {
             </div>
           </div>
 
-          {/* RIGHT — Vitals + Radar + Alerts + Capital Flow + Budget */}
+          {/* RIGHT — Vitals + Radar + Alerts + Capital Flow + Budget + Satellite / Intervention */}
           <motion.aside
             initial={{ opacity: 0, x: 18 }}
             animate={{ opacity: 1, x: 0 }}
@@ -321,15 +321,32 @@ export default function Index() {
                 onDeployRequest={setDeployTarget}
               />
             </motion.div>
-            {/* Satellite Feed */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.55 }}
-              className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden"
-            >
-              <SatelliteFeed simActive={simState.active} />
-            </motion.div>
+            {/* Intervention Simulator — shown when INTERVENE active, else Satellite Feed */}
+            <AnimatePresence mode="wait">
+              {interventorOpen ? (
+                <motion.div
+                  key="intervene"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3 }}
+                  className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden border border-healthy/20"
+                >
+                  <InterventionSimulator />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="satellite"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3, delay: 0.55 }}
+                  className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden"
+                >
+                  <SatelliteFeed simActive={simState.active} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.aside>
         </div>
 
