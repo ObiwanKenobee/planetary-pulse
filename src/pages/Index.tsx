@@ -150,6 +150,20 @@ export default function Index() {
                 CASCADE
               </button>
 
+              {/* INTERVENE button */}
+              <button
+                onClick={() => setInterventorOpen(v => !v)}
+                className={`flex items-center gap-1.5 font-data text-[9px] tracking-widest border rounded-sm px-2.5 py-1.5 transition-all ${
+                  interventorOpen
+                    ? "border-healthy/40 text-healthy bg-healthy/10"
+                    : "text-healthy border-healthy/20 hover:bg-healthy/10 hover:border-healthy/40"
+                }`}
+                title="Intervention Simulator"
+              >
+                <FlaskConical className="w-3 h-3" />
+                INTERVENE
+              </button>
+
               {/* REPORT button */}
               <button
                 onClick={() => setReportOpen(true)}
