@@ -1,6 +1,6 @@
 import { useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Expand, GitBranch, Menu, Play, Square } from "lucide-react";
+import { Expand, GitBranch, Menu, Play, Square, FlaskConical } from "lucide-react";
 import PlanetaryGlobe from "@/components/PlanetaryGlobe";
 import VitalsPanel from "@/components/VitalsPanel";
 import PulseGraph from "@/components/PulseGraph";
