@@ -1,6 +1,6 @@
 import { useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Expand, GitBranch, Menu, Play, Square } from "lucide-react";
+import { Expand, GitBranch, Menu, Play, Square, FlaskConical } from "lucide-react";
 import PlanetaryGlobe from "@/components/PlanetaryGlobe";
 import VitalsPanel from "@/components/VitalsPanel";
 import PulseGraph from "@/components/PulseGraph";
@@ -20,6 +20,7 @@ import NewsTicker from "@/components/NewsTicker";
 import PlanetaryBudget, { DeployModal, BiomeBudget } from "@/components/PlanetaryBudget";
 import PlanetaryThreatReport from "@/components/PlanetaryThreatReport";
 import SatelliteFeed from "@/components/SatelliteFeed";
+import InterventionSimulator from "@/components/InterventionSimulator";
 import { MobileOverlayDrawer } from "@/components/MobileDrawer";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 import { useSimulateMode } from "@/hooks/useSimulateMode";
@@ -40,6 +41,7 @@ export default function Index() {
   const [focusRegion, setFocusRegion]   = useState<{ lat: number; lon: number; label: string } | null>(null);
   const [deployTarget, setDeployTarget] = useState<BiomeBudget | null>(null);
   const [budgetDeploys, setBudgetDeploys] = useState<Record<string, number>>({});
+  const [interventorOpen, setInterventorOpen] = useState(false);
 
   const handleBudgetDeploy = (id: string, amount: number) => {
     setBudgetDeploys(prev => ({ ...prev, [id]: (prev[id] ?? 0) + amount }));
@@ -146,6 +148,20 @@ export default function Index() {
               >
                 <GitBranch className="w-3 h-3" />
                 CASCADE
+              </button>
+
+              {/* INTERVENE button */}
+              <button
+                onClick={() => setInterventorOpen(v => !v)}
+                className={`flex items-center gap-1.5 font-data text-[9px] tracking-widest border rounded-sm px-2.5 py-1.5 transition-all ${
+                  interventorOpen
+                    ? "border-healthy/40 text-healthy bg-healthy/10"
+                    : "text-healthy border-healthy/20 hover:bg-healthy/10 hover:border-healthy/40"
+                }`}
+                title="Intervention Simulator"
+              >
+                <FlaskConical className="w-3 h-3" />
+                INTERVENE
               </button>
 
               {/* REPORT button */}
@@ -272,7 +288,7 @@ export default function Index() {
             </div>
           </div>
 
-          {/* RIGHT — Vitals + Radar + Alerts + Capital Flow + Budget */}
+          {/* RIGHT — Vitals + Radar + Alerts + Capital Flow + Budget + Satellite / Intervention */}
           <motion.aside
             initial={{ opacity: 0, x: 18 }}
             animate={{ opacity: 1, x: 0 }}
@@ -305,15 +321,32 @@ export default function Index() {
                 onDeployRequest={setDeployTarget}
               />
             </motion.div>
-            {/* Satellite Feed */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.55 }}
-              className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden"
-            >
-              <SatelliteFeed simActive={simState.active} />
-            </motion.div>
+            {/* Intervention Simulator — shown when INTERVENE active, else Satellite Feed */}
+            <AnimatePresence mode="wait">
+              {interventorOpen ? (
+                <motion.div
+                  key="intervene"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3 }}
+                  className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden border border-healthy/20"
+                >
+                  <InterventionSimulator />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="satellite"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3, delay: 0.55 }}
+                  className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden"
+                >
+                  <SatelliteFeed simActive={simState.active} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.aside>
         </div>
 
