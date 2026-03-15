@@ -41,6 +41,7 @@ export default function Index() {
   const [focusRegion, setFocusRegion]   = useState<{ lat: number; lon: number; label: string } | null>(null);
   const [deployTarget, setDeployTarget] = useState<BiomeBudget | null>(null);
   const [budgetDeploys, setBudgetDeploys] = useState<Record<string, number>>({});
+  const [interventorOpen, setInterventorOpen] = useState(false);
 
   const handleBudgetDeploy = (id: string, amount: number) => {
     setBudgetDeploys(prev => ({ ...prev, [id]: (prev[id] ?? 0) + amount }));
