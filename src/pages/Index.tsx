@@ -21,6 +21,7 @@ import PlanetaryBudget, { DeployModal, BiomeBudget } from "@/components/Planetar
 import PlanetaryThreatReport from "@/components/PlanetaryThreatReport";
 import SatelliteFeed from "@/components/SatelliteFeed";
 import InterventionSimulator from "@/components/InterventionSimulator";
+import CollapsiblePanel from "@/components/CollapsiblePanel";
 import { MobileOverlayDrawer } from "@/components/MobileDrawer";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 import { useSimulateMode } from "@/hooks/useSimulateMode";
