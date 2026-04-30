@@ -148,6 +148,26 @@
     box-shadow: 0 0 20px hsl(var(--glow-cyan) / 0.25), 0 0 40px hsl(var(--glow-cyan) / 0.1);
   }
 
+  /* Thin custom scrollbar for sidebar panels */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.25);
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+
   .glow-green {
     box-shadow: 0 0 16px hsl(var(--glow-green) / 0.3);
   }
