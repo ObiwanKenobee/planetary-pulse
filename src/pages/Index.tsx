@@ -288,65 +288,43 @@ export default function Index() {
             </div>
           </div>
 
-          {/* RIGHT — Vitals + Radar + Alerts + Capital Flow + Budget + Satellite / Intervention */}
+          {/* RIGHT — All panels collapsible & scrollable */}
           <motion.aside
             initial={{ opacity: 0, x: 18 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.45, delay: 0.2 }}
-            className="flex flex-col gap-3 min-h-0 overflow-hidden"
+            className="flex flex-col gap-2 min-h-0 overflow-y-auto scrollbar-thin pr-1"
           >
-            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "130px" }}>
+            <CollapsiblePanel title="VITALS" subtitle="biosphere · oceans · atm" height={130} accentColor="text-primary/70">
               <VitalsPanel vitals={realtimeData.vitals} />
-            </div>
-            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "175px" }}>
+            </CollapsiblePanel>
+
+            <CollapsiblePanel title="ECOSYSTEM RADAR" subtitle="planetary boundaries" height={175} accentColor="text-primary/70">
               <EcosystemRadar />
-            </div>
-            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "160px" }}>
+            </CollapsiblePanel>
+
+            <CollapsiblePanel title="TIPPING ALERTS" subtitle="cascading risk feed" height={160} accentColor="text-warning/80">
               <TippingPointAlerts alerts={ALL_ALERTS} onAlertClick={setActiveAlert} />
-            </div>
-            {/* Capital Flow Feed */}
-            <div className="panel-glass rounded-sm p-3 shadow-panel shrink-0" style={{ height: "140px" }}>
+            </CollapsiblePanel>
+
+            <CollapsiblePanel title="CAPITAL FLOW" subtitle="regenerative deployment" height={140} accentColor="text-healthy/70">
               <CapitalFlowFeed onZoomToRegion={handleZoomToRegion} />
-            </div>
-            {/* Planetary Budget */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.45 }}
-              className="panel-glass rounded-sm p-3 shadow-panel shrink-0"
-              style={{ height: "260px" }}
-            >
+            </CollapsiblePanel>
+
+            <CollapsiblePanel title="PLANETARY BUDGET" subtitle="needed vs deployed" height={260} accentColor="text-healthy/70">
               <PlanetaryBudget
                 onZoomToRegion={handleZoomToRegion}
                 onDeployRequest={setDeployTarget}
               />
-            </motion.div>
-            {/* Intervention Simulator — shown when INTERVENE active, else Satellite Feed */}
-            <AnimatePresence mode="wait">
-              {interventorOpen ? (
-                <motion.div
-                  key="intervene"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3 }}
-                  className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden border border-healthy/20"
-                >
-                  <InterventionSimulator />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="satellite"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3, delay: 0.55 }}
-                  className="panel-glass rounded-sm p-3 shadow-panel flex-1 min-h-0 overflow-hidden"
-                >
-                  <SatelliteFeed simActive={simState.active} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            </CollapsiblePanel>
+
+            <CollapsiblePanel title="SATELLITE FEED" subtitle="earth observation" height={300} accentColor="text-primary/70" defaultOpen={!interventorOpen}>
+              <SatelliteFeed simActive={simState.active} />
+            </CollapsiblePanel>
+
+            <CollapsiblePanel title="INTERVENTION SIM" subtitle="funding → projection" height={520} accentColor="text-healthy/70" defaultOpen={interventorOpen}>
+              <InterventionSimulator />
+            </CollapsiblePanel>
           </motion.aside>
         </div>
 
